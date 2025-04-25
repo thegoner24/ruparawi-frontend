@@ -54,10 +54,11 @@ export class AuthController {
         message: 'Registration successful',
         ...data
       };
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during registration';
       return {
         success: false,
-        message: error.message || 'An error occurred during registration'
+        message: errorMessage
       };
     }
   }
@@ -92,10 +93,11 @@ export class AuthController {
         message: 'Login successful',
         ...data
       };
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during registration';
       return {
         success: false,
-        message: error.message || 'An error occurred during login'
+        message: errorMessage
       };
     }
   }
@@ -149,10 +151,11 @@ export class AuthController {
         message: 'User profile retrieved successfully',
         user: data.user
       };
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during registration';
       return {
         success: false,
-        message: error.message || 'An error occurred while fetching user profile'
+        message: errorMessage
       };
     }
   }
