@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +27,7 @@ export default function RegisterPage() {
       const result = await AuthController.register({
         firstName,
         lastName,
+        username,
         email,
         password
       });
@@ -98,6 +100,23 @@ export default function RegisterPage() {
               {error}
             </div>
           )}
+
+          {/* Username */}
+          <div className="w-full flex flex-col">
+            <label className="uppercase text-base tracking-wider text-gray-700 mb-1" htmlFor="username">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              autoComplete="username"
+              required
+              className="border border-gray-300 focus:border-black rounded-none px-6 py-4 mb-2 text-lg text-black bg-white outline-none transition"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
           
           {/* Success message */}
           {success && (

@@ -10,6 +10,7 @@ export interface UserCredentials {
 export interface RegisterData extends UserCredentials {
   firstName: string;
   lastName: string;
+  username?: string; // Added username field as required by the backend
 }
 
 export interface AuthResponse {
@@ -32,12 +33,21 @@ export class AuthController {
   // Register a new user
   static async register(userData: RegisterData): Promise<AuthResponse> {
     try {
+      // Create a modified userData object that includes username
+      const userDataWithUsername = {
+        ...userData,
+        // If username is not provided, generate one from firstName and lastName
+        username: userData.username || `${userData.firstName.toLowerCase()}_${userData.lastName.toLowerCase()}`
+      };
+      
+      console.log('Sending registration data:', userDataWithUsername);
+      
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userDataWithUsername)
       });
       
       const data = await response.json();
