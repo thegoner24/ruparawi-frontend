@@ -1,11 +1,57 @@
 "use client";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+// Using SVG directly instead of react-icons to avoid dependency issues
+import CartController from "../controllers/cartController";
+import AuthController from "../controllers/authController";
+
+// Define cart item type
+interface CartItem {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  quantity: number;
+  size?: string;
+  color?: string;
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  
+  // Load cart items using CartController
+  useEffect(() => {
+    // Load cart items initially
+    setCartItems(CartController.getItems());
+    
+    // Listen for cart updates from other components
+    const handleCartUpdate = (event: any) => {
+      if (event.detail && event.detail.cartItems) {
+        setCartItems(event.detail.cartItems);
+      }
+    };
+    
+    // Set up event listener
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    
+    // Set up storage event listener to sync across tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'cartItems' && e.newValue) {
+        setCartItems(CartController.getItems());
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Clean up event listeners on unmount
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,9 +81,14 @@ export default function Navbar() {
           <button className="p-1 rounded hover:bg-gray-100 transition" aria-label="Search">
             <svg width="22" height="22" fill="none" stroke="black" strokeWidth="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" /></svg>
           </button>
-          <a href="#cart" className="relative group p-1 hover:bg-gray-100 rounded transition" aria-label="Cart">
+          <Link href="/cart" className="relative group p-1 hover:bg-gray-100 rounded transition" aria-label="Cart">
             <svg width="22" height="22" fill="none" stroke="black" strokeWidth="1.5" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1" /><circle cx="17" cy="20" r="1" /><path d="M3 4h2l.4 2M7 13h10l4-8H5.4" /></svg>
-          </a>
+            {cartItems.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[#d4b572] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                {cartItems.reduce((total, item) => total + item.quantity, 0)}
+              </span>
+            )}
+          </Link>
           {/* Hamburger menu (always visible, after cart icon) */}
           <button
             className="ml-2 p-1 rounded hover:bg-gray-100 transition"
