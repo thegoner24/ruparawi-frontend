@@ -79,7 +79,7 @@ export default function Navbar() {
                 { label: "Shop By Category", href: "#category" },
                 { label: "Shop By Collection", href: "#collection" },
                 { label: "Circularity", href: "#circularity" },
-                { label: "Login", href: "#login" },
+                { label: "Login", href: "/login" },
               ].map(({ label, href }, idx) => (
                 <a
                   key={label + '-' + idx}
