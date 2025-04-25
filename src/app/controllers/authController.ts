@@ -25,14 +25,14 @@ export interface AuthResponse {
 }
 
 // API URL
-const API_BASE_URL = 'https://mad-adriane-dhanapersonal-9be85724.koyeb.app/auth';
+const API_BASE_URL = 'https://mad-adriane-dhanapersonal-9be85724.koyeb.app';
 
 // Controller class for authentication
 export class AuthController {
   // Register a new user
   static async register(userData: RegisterData): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/register`, {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -65,7 +65,7 @@ export class AuthController {
   // Login user
   static async login(credentials: UserCredentials): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
