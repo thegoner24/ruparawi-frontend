@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthController from "../controllers/authController";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,8 +27,21 @@ export default function LoginPage() {
         password
       });
       
-      if (result.success) {
-        // Redirect to the shop page on successful login
+      if (result.success && result.user) {
+        // Extract user info for context
+        const userObj = result.user as any;
+        const username = userObj.username || "";
+        const avatar = userObj.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random`;
+        const name =
+          (userObj.first_name || userObj.firstName || "") +
+          ((userObj.last_name || userObj.lastName) ? " " + (userObj.last_name || userObj.lastName) : "");
+        const userInfo = { name, username, avatar };
+        const validRoles = ['admin', 'buyer', 'vendor'];
+        let role: 'admin' | 'buyer' | 'vendor' = 'buyer';
+        if (userObj.role && validRoles.includes(userObj.role)) {
+          role = userObj.role;
+        }
+        setAuth(result.token ?? '', role, userInfo);
         router.push('/shop');
       } else {
         // Display error message
