@@ -73,8 +73,8 @@ export default function Navbar() {
   return (
     <nav className={`group sticky top-0 z-50 w-full transition-shadow bg-white shadow-md border-b ${scrolled ? "shadow-md border-gray-200" : "border-transparent"} hover:bg-white/60 hover:backdrop-blur-lg hover:border-white/30 hover:shadow-lg transition-transform duration-300 ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-2 md:px-6 py-2 md:py-3">
-        {/* Logo */}
-        <a href="#" className="flex items-center gap-3 min-h-[48px]">
+        {/* Logo - now clickable to landing page */}
+        <a href="/" className="flex items-center gap-3 min-h-[48px] cursor-pointer">
           <img src="/RupaRawi.png" alt="Rupa Rawi" className="h-10 w-auto object-contain" style={{fontFamily: '"Homemade Apple", cursive'}} />
           <span className="text-black text-xl font-semibold tracking-wide league-script-regular">Rupa Rawi</span>
         </a>
@@ -168,15 +168,7 @@ export default function Navbar() {
             </button>
             <h2 className="text-lg font-bold mb-4 text-black">MENU</h2>
             <nav className="flex flex-col gap-4">
-              {[
-                { label: "SMM x Eko Nugroho", href: "#eko" },
-                { label: "Delightful Gifts", href: "#gifts" },
-                { label: "New Arrivals", href: "#new" },
-                { label: "Shop By Category", href: "#category" },
-                { label: "Shop By Collection", href: "#collection" },
-                { label: "Circularity", href: "#circularity" },
-                { label: "Login", href: "/login" },
-              ].map(({ label, href }, idx) => (
+              {[{ label: "About", href: "/about" }, { label: "Login", href: "/login" }].map(({ label, href }, idx) => (
                 <a
                   key={label + '-' + idx}
                   href={href}

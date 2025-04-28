@@ -26,6 +26,19 @@ body {
   min-height: 100vh;
 }
 
+/* Floating Animations for About Page */
+@keyframes float {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-16px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite alternate;
+}
+.animate-float-slow {
+  animation: float 6s ease-in-out infinite alternate;
+}
+
+
 .league-script-regular {
   font-family: "League Script", cursive;
   font-weight: 400;
