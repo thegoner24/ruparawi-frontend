@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rupa Rawi Frontend
 
-## Getting Started
+Rupa Rawi is a sustainable community market platform that empowers local artists to reach more buyers and share the stories behind their creations. This is the frontend web application, built with modern technologies for a seamless and engaging user experience.
 
-First, run the development server:
+## 🌱 Project Overview
+- **Mission:** Connect local artists with a wider audience and highlight the unique stories behind every product.
+- **Platform:** Community marketplace for sustainable, ethical, and creative products.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Tech Stack
+- **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
+- **Language:** TypeScript, React 19
+- **Styling:** Tailwind CSS, custom fonts (Inter, Cormorant Garamond, League Script)
+- **Animation:** Framer Motion
+- **State/Context:** React Context API (for auth)
+
+## 📁 Folder Structure
+```
+/src/app
+  |-- about/            # About page (mission, values, team)
+  |-- components/       # Reusable UI components (Navbar, Footer, etc)
+  |-- context/          # Auth context
+  |-- controllers/      # Logic for cart, auth, etc
+  |-- login/            # Login page
+  |-- register/         # Registration page
+  |-- shop/             # Shop and product-related pages
+  |-- globals.css       # Global styles (Tailwind)
+  |-- layout.tsx        # Root layout (Navbar, Footer)
+  |-- page.tsx          # Landing page
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Core Features
+- Modern, responsive landing page inspired by PayPal
+- Animated About page with mission, values, and team
+- User authentication (register, login, logout)
+- Product browsing & shopping cart
+- Profile and account management
+- Clean, accessible UI with smooth animations
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Getting Started
+1. **Install dependencies:**
+   ```bash
+   npm install
+   # or
+yarn install
+   ```
+2. **Start the development server:**
+   ```bash
+   npm run dev
+   # or
+yarn dev
+   ```
+3. Visit [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🖼️ Customization
+- Place your logo at `/public/RupaRawi.png` for branding.
+- Update About page visuals in `/public/about-artist.svg`, `/public/about-market.svg`, etc.
 
-## Learn More
+## 🤝 Contributing
+1. Fork this repository
+2. Create a new branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
 
-To learn more about Next.js, take a look at the following resources:
+## 📄 License
+This project is open-source and available under the MIT License.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For questions or feedback, please contact the Rupa Rawi team.
