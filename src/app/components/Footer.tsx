@@ -2,7 +2,7 @@
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-gray-50 text-gray-700 py-10 px-4 mt-8 border-t border-gray-200">
+    <footer className="w-full bg-gray-50 text-gray-700 py-10 px-4 border-t border-gray-200">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:justify-between gap-8 items-center md:items-start">
         {/* Brand and description */}
         <div className="flex flex-col items-center md:items-start">

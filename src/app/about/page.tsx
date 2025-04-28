@@ -138,7 +138,7 @@ export default function AboutPage() {
             className="flex flex-col items-center text-center bg-white rounded-2xl shadow p-6 transition-all duration-200"
           >
             <img src="/team3.svg" alt="Tech Lead" className="w-20 h-20 rounded-full mb-3 border-4 border-[#F3EFE7] object-cover animate-float" />
-            <h3 className="font-bold text-lg text-[#7C6A0A] mb-1">Dhana</h3>
+            <h3 className="font-bold text-lg text-[#7C6A0A] mb-1">I Gusti Ngurah Waradhana Nugraha</h3>
             <p className="text-gray-700 text-sm">Founder &amp; Backend Developer</p>
           </motion.div>
           {/* Team Member 4 */}

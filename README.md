@@ -29,7 +29,7 @@ Rupa Rawi is a sustainable community market platform that empowers local artists
 ```
 
 ## ✨ Core Features
-- Modern, responsive landing page inspired by PayPal
+- Modern, responsive landing page
 - Animated About page with mission, values, and team
 - User authentication (register, login, logout)
 - Product browsing & shopping cart
