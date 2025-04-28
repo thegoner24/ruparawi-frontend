@@ -3,6 +3,7 @@ import ProductContainer from "./components/ProductContainer";
 import HighlightedProduct from "./components/HighlightedProduct";
 import GalleryGrid from "./components/GalleryGrid";
 import CollaboratorStory from "./components/CollaboratorStory";
+import CommunityVoices from "./components/CommunityVoices";
 import ArticleSection from "./components/ArticleSection";
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
       <GalleryGrid />
       <CollaboratorStory />
       <ArticleSection />
+      <CommunityVoices />
     </>
   );
 }
