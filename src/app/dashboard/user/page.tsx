@@ -2,17 +2,20 @@
 import { useEffect, useState } from "react";
 import { HiUser, HiClipboardList, HiHeart, HiTrash } from "react-icons/hi";
 
-// API base URL
-const API_BASE_URL = "https://mad-adriane-dhanapersonal-9be85724.koyeb.app";
-
 // --- MAIN DASHBOARD PAGE ---
 export default function UserDashboardPage() {
   // Sidebar navigation state
   const [activeSection, setActiveSection] = useState("profile");
 
-  // Profile state (matches backend field names!)
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  // Mock profile state (no backend, no token required)
+  const [profile, setProfile] = useState<any>({
+    first_name: "Jane",
+    last_name: "Doe",
+    bio: "Fashion enthusiast. Love traditional fabrics!",
+    profile_image_url: "/images/profile-default.jpg",
+    email: "janedoe@example.com"
+  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Dummy order and wishlist data (not connected to backend)
@@ -43,37 +46,7 @@ export default function UserDashboardPage() {
     },
   ]);
 
-  // Fetch profile from backend on mount
-  useEffect(() => {
-    async function fetchProfile() {
-      setLoading(true);
-      setError(null);
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        setError("You are not logged in.");
-        setLoading(false);
-        return;
-      }
-      try {
-        const res = await fetch(`${API_BASE_URL}/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-        const data = await res.json();
-        if (data.success && data.user) {
-          setProfile(data.user);
-        } else {
-          setError(data.message || "Failed to load profile");
-        }
-      } catch (err: any) {
-        setError("Failed to load profile");
-      }
-      setLoading(false);
-    }
-    fetchProfile();
-  }, []);
+
 
   // Profile completion calculation
   const requiredFields = ["first_name", "last_name", "bio"];
@@ -88,42 +61,12 @@ export default function UserDashboardPage() {
       100
   );
 
-  // Profile update handler (PUT /user/me)
-  const handleProfileUpdate = async (updatedProfile: any) => {
-    setLoading(true);
-    setError(null);
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      setError("You are not logged in.");
-      setLoading(false);
-      return;
-    }
-    try {
-      const res = await fetch(`${API_BASE_URL}/user/me`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          bio: updatedProfile.bio,
-          first_name: updatedProfile.first_name,
-          last_name: updatedProfile.last_name,
-          profile_image_url: updatedProfile.profile_image_url || null,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setProfile(updatedProfile);
-        alert("Profile updated!");
-      } else {
-        setError(data.message || "Failed to update profile");
-      }
-    } catch (err: any) {
-      setError("Failed to update profile");
-    }
-    setLoading(false);
+  // Profile update handler (mock, no API)
+  const handleProfileUpdate = (updatedProfile: any) => {
+    setProfile(updatedProfile);
+    alert("Profile updated!");
   };
+
 
   // Wishlist actions
   const removeFromWishlist = (itemId: number) =>
@@ -428,45 +371,16 @@ function EditProfileForm({
     setFormData((fd) => ({ ...fd, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      setError("Not authenticated");
-      setSaving(false);
-      return;
-    }
-    try {
-      const res = await fetch(
-        "https://mad-adriane-dhanapersonal-9be85724.koyeb.app/user/me",
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            bio: formData.bio,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            profile_image_url: formData.profile_image_url || null,
-          }),
-        }
-      );
-      const data = await res.json();
-      if (data.success) {
-        onUpdate({ ...profile, ...formData });
-        alert("Profile updated!");
-      } else {
-        setError(data.message || "Failed to update profile");
-      }
-    } catch (err: any) {
-      setError("Failed to update profile");
-    }
+    // No API call, just update local state
+    onUpdate({ ...profile, ...formData });
+    alert("Profile updated!");
     setSaving(false);
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
