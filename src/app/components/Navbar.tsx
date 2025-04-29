@@ -138,6 +138,33 @@ export default function Navbar() {
                       Vendor Dashboard
                     </Link>
                   )}
+                  {role === 'admin' && (
+                    <Link
+                      href="/dashboard/admin"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  {role === 'vendor' && (
+                    <Link
+                      href="/dashboard/vendor"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Vendor Dashboard
+                    </Link>
+                  )}
+                  {(role === 'buyer' || !role) && (
+                    <Link
+                      href="/dashboard/user"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      User Dashboard
+                    </Link>
+                  )}
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-b"
                     onClick={() => {
