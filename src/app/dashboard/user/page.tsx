@@ -1,21 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HiUser, HiClipboardList, HiHeart, HiTrash } from "react-icons/hi";
 
+// API base URL
+const API_BASE_URL = "https://mad-adriane-dhanapersonal-9be85724.koyeb.app";
+
+// --- MAIN DASHBOARD PAGE ---
 export default function UserDashboardPage() {
   // Sidebar navigation state
   const [activeSection, setActiveSection] = useState("profile");
 
-  // Example user profile state (replace with real data/fetch as needed)
-  const [profile, setProfile] = useState({
-    fullName: "",
-    email: "",
-    phoneNumber: "",
-    address: "",
-    profileImage: null,
-  });
+  // Profile state (matches backend field names!)
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Dummy order and wishlist data
+  // Dummy order and wishlist data (not connected to backend)
   const orders = [
     {
       id: "ORD-2025-001",
@@ -43,21 +43,86 @@ export default function UserDashboardPage() {
     },
   ]);
 
+  // Fetch profile from backend on mount
+  useEffect(() => {
+    async function fetchProfile() {
+      setLoading(true);
+      setError(null);
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        setError("You are not logged in.");
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE_URL}/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await res.json();
+        if (data.success && data.user) {
+          setProfile(data.user);
+        } else {
+          setError(data.message || "Failed to load profile");
+        }
+      } catch (err: any) {
+        setError("Failed to load profile");
+      }
+      setLoading(false);
+    }
+    fetchProfile();
+  }, []);
+
   // Profile completion calculation
-  const requiredFields = ["fullName", "email", "phoneNumber", "address"];
-  const optionalFields = ["profileImage", "businessType", "registrationNumber"];
-  const completedRequired = requiredFields.filter((f) => profile[f as keyof typeof profile]).length;
-  const completedOptional = optionalFields.filter((f) => profile[f as keyof typeof profile]).length;
+  const requiredFields = ["first_name", "last_name", "bio"];
+  const optionalFields = ["profile_image_url"];
+  const completedRequired = requiredFields.filter((f) => profile?.[f]).length;
+  const completedOptional = optionalFields.filter((f) => profile?.[f]).length;
   const completionPercentage = Math.round(
     ((completedRequired / requiredFields.length) * 0.7 +
-      (completedOptional / optionalFields.length) * 0.3) *
+      (optionalFields.length
+        ? (completedOptional / optionalFields.length) * 0.3
+        : 0)) *
       100
   );
 
-  // Profile update handler
-  const handleProfileUpdate = (updatedProfile: typeof profile) => {
-    setProfile({ ...profile, ...updatedProfile });
-    alert("Profile updated!");
+  // Profile update handler (PUT /user/me)
+  const handleProfileUpdate = async (updatedProfile: any) => {
+    setLoading(true);
+    setError(null);
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setError("You are not logged in.");
+      setLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/user/me`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bio: updatedProfile.bio,
+          first_name: updatedProfile.first_name,
+          last_name: updatedProfile.last_name,
+          profile_image_url: updatedProfile.profile_image_url || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProfile(updatedProfile);
+        alert("Profile updated!");
+      } else {
+        setError(data.message || "Failed to update profile");
+      }
+    } catch (err: any) {
+      setError("Failed to update profile");
+    }
+    setLoading(false);
   };
 
   // Wishlist actions
@@ -68,7 +133,7 @@ export default function UserDashboardPage() {
     removeFromWishlist(item.id);
   };
 
-  // Delete account handler
+  // Delete account handler (not connected to backend)
   const handleDeleteAccount = () => {
     if (
       window.confirm(
@@ -86,6 +151,22 @@ export default function UserDashboardPage() {
     { id: "wishlist", label: "Wishlist", icon: HiHeart },
     { id: "delete", label: "Delete Account", icon: HiTrash },
   ];
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-red-600">{error}</div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -143,11 +224,12 @@ export default function UserDashboardPage() {
 
           <div className="bg-white shadow rounded-lg overflow-hidden mb-8 p-8">
             {/* Edit Profile */}
-            {activeSection === "profile" && (
+            {activeSection === "profile" && profile && (
               <EditProfileForm
                 profile={profile}
                 onUpdate={handleProfileUpdate}
                 completion={completionPercentage}
+                loading={loading}
               />
             )}
 
@@ -323,40 +405,72 @@ function EditProfileForm({
   profile,
   onUpdate,
   completion,
+  loading,
 }: {
   profile: any;
   onUpdate: (data: any) => void;
   completion: number;
+  loading: boolean;
 }) {
-  const [formData, setFormData] = useState(profile);
-  const [imagePreview, setImagePreview] = useState(profile.profileImage);
+  const [formData, setFormData] = useState({
+    bio: profile.bio || "",
+    first_name: profile.first_name || "",
+    last_name: profile.last_name || "",
+    profile_image_url: profile.profile_image_url || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((fd) => ({ ...fd, [name]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setFormData({ ...formData, profileImage: file });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdate(formData);
+    setSaving(true);
+    setError(null);
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setError("Not authenticated");
+      setSaving(false);
+      return;
+    }
+    try {
+      const res = await fetch(
+        "https://mad-adriane-dhanapersonal-9be85724.koyeb.app/user/me",
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            bio: formData.bio,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            profile_image_url: formData.profile_image_url || null,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (data.success) {
+        onUpdate({ ...profile, ...formData });
+        alert("Profile updated!");
+      } else {
+        setError(data.message || "Failed to update profile");
+      }
+    } catch (err: any) {
+      setError("Failed to update profile");
+    }
+    setSaving(false);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {error && <div className="text-red-600">{error}</div>}
       {/* Profile Completion */}
       <div className="mb-8 p-4 bg-gray-50 rounded-lg">
         <h3 className="text-lg font-medium mb-2">
@@ -369,167 +483,62 @@ function EditProfileForm({
           ></div>
         </div>
       </div>
-      {/* Profile Picture */}
-      <div className="flex flex-col items-center mb-6">
-        <div className="w-32 h-32 bg-gray-200 rounded-full overflow-hidden mb-4">
-          {imagePreview ? (
-            <img
-              src={imagePreview}
-              alt="Profile preview"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-16 w-16"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
-          )}
-        </div>
-        <label className="cursor-pointer bg-black text-white px-4 py-2 rounded-full text-sm hover:bg-gray-900 transition">
-          Upload Photo
-          <input
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={handleFileChange}
+      {/* Profile Image URL */}
+      <div>
+        <label className="block font-medium mb-1">Profile Image URL</label>
+        <input
+          name="profile_image_url"
+          value={formData.profile_image_url}
+          onChange={handleChange}
+          className="border px-4 py-2 rounded w-full"
+        />
+        {formData.profile_image_url && (
+          <img
+            src={formData.profile_image_url}
+            alt="Profile"
+            className="h-16 w-16 rounded-full object-cover mt-2"
           />
-        </label>
+        )}
       </div>
-      {/* Form Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Full Name */}
-        <div className="col-span-2">
-          <label
-            className="uppercase text-base tracking-wider text-gray-700 mb-1 block"
-            htmlFor="fullName"
-          >
-            Full Name
-          </label>
-          <input
-            id="fullName"
-            name="fullName"
-            type="text"
-            value={formData.fullName}
-            onChange={handleChange}
-            className="border border-gray-300 focus:border-black rounded-none px-6 py-4 w-full text-lg text-black bg-white outline-none transition"
-            required
-          />
-        </div>
-        {/* Email */}
-        <div>
-          <label
-            className="uppercase text-base tracking-wider text-gray-700 mb-1 block"
-            htmlFor="email"
-          >
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="border border-gray-300 focus:border-black rounded-none px-6 py-4 w-full text-lg text-black bg-white outline-none transition"
-            required
-          />
-        </div>
-        {/* Phone Number */}
-        <div>
-          <label
-            className="uppercase text-base tracking-wider text-gray-700 mb-1 block"
-            htmlFor="phoneNumber"
-          >
-            Phone Number
-          </label>
-          <input
-            id="phoneNumber"
-            name="phoneNumber"
-            type="tel"
-            value={formData.phoneNumber}
-            onChange={handleChange}
-            className="border border-gray-300 focus:border-black rounded-none px-6 py-4 w-full text-lg text-black bg-white outline-none transition"
-            required
-          />
-        </div>
-        {/* Address */}
-        <div className="col-span-2">
-          <label
-            className="uppercase text-base tracking-wider text-gray-700 mb-1 block"
-            htmlFor="address"
-          >
-            Address
-          </label>
-          <textarea
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            rows={3}
-            className="border border-gray-300 focus:border-black rounded-none px-6 py-4 w-full text-lg text-black bg-white outline-none transition"
-            required
-          />
-        </div>
-        {/* Business Type */}
-        <div>
-          <label
-            className="uppercase text-base tracking-wider text-gray-700 mb-1 block"
-            htmlFor="businessType"
-          >
-            Business Type
-          </label>
-          <select
-            id="businessType"
-            name="businessType"
-            value={formData.businessType}
-            onChange={handleChange}
-            className="border border-gray-300 focus:border-black rounded-none px-6 py-4 w-full text-lg text-black bg-white outline-none transition"
-          >
-            <option value="">Select business type</option>
-            <option value="retail">Retail</option>
-            <option value="wholesale">Wholesale</option>
-            <option value="manufacturing">Manufacturing</option>
-            <option value="service">Service</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        {/* Registration Number */}
-        <div>
-          <label
-            className="uppercase text-base tracking-wider text-gray-700 mb-1 block"
-            htmlFor="registrationNumber"
-          >
-            Registration Number
-          </label>
-          <input
-            id="registrationNumber"
-            name="registrationNumber"
-            type="text"
-            value={formData.registrationNumber || ""}
-            onChange={handleChange}
-            className="border border-gray-300 focus:border-black rounded-none px-6 py-4 w-full text-lg text-black bg-white outline-none transition"
-          />
-        </div>
+      {/* First Name */}
+      <div>
+        <label className="block font-medium mb-1">First Name</label>
+        <input
+          name="first_name"
+          value={formData.first_name}
+          onChange={handleChange}
+          className="border px-4 py-2 rounded w-full"
+          required
+        />
       </div>
-      <div className="mt-8">
-        <button
-          type="submit"
-          className="w-fit px-12 py-3 bg-black text-white rounded-full font-semibold tracking-wide text-lg hover:bg-gray-900 transition"
-        >
-          SAVE CHANGES
-        </button>
+      {/* Last Name */}
+      <div>
+        <label className="block font-medium mb-1">Last Name</label>
+        <input
+          name="last_name"
+          value={formData.last_name}
+          onChange={handleChange}
+          className="border px-4 py-2 rounded w-full"
+          required
+        />
       </div>
+      {/* Bio */}
+      <div>
+        <label className="block font-medium mb-1">Bio</label>
+        <textarea
+          name="bio"
+          value={formData.bio}
+          onChange={handleChange}
+          className="border px-4 py-2 rounded w-full"
+        />
+      </div>
+      <button
+        type="submit"
+        className="w-fit px-12 py-3 bg-black text-white rounded-full font-semibold tracking-wide text-lg hover:bg-gray-900 transition"
+        disabled={saving || loading}
+      >
+        {saving ? "Saving..." : "Save Changes"}
+      </button>
     </form>
   );
 }
