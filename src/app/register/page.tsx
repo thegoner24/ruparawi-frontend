@@ -93,7 +93,7 @@ export default function RegisterPage() {
         <h1 className="text-4xl font-normal text-black mb-12 mt-4 tracking-tight text-center">
           Create Account
         </h1>
-        <form className="w-full flex flex-col gap-6" onSubmit={handleRegister}>
+        <form className="w-full flex flex-col gap-5" onSubmit={handleRegister}>
           {/* Error message */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-2">
@@ -111,75 +111,73 @@ export default function RegisterPage() {
               type="text"
               autoComplete="username"
               required
-              className="border border-gray-300 focus:border-black rounded-none px-6 py-4 mb-2 text-lg text-black bg-white outline-none transition"
+              className="bg-gray-50 border border-gray-200 focus:border-black focus:bg-white rounded-md px-4 py-3 text-base text-black outline-none transition placeholder:text-gray-400"
+              placeholder="Username"
               value={username}
               onChange={e => setUsername(e.target.value)}
               disabled={isLoading}
             />
           </div>
-          
           {/* Success message */}
           {success && (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-2">
               Registration successful! Redirecting to login...
             </div>
           )}
-          
-          <div className="w-full flex flex-col">
-            <label className="uppercase text-base tracking-wider text-gray-700 mb-1" htmlFor="firstName">
-              First Name
-            </label>
-            <input
-              id="firstName"
-              type="text"
-              autoComplete="given-name"
-              required
-              className="border border-gray-300 focus:border-black rounded-none px-6 py-4 mb-2 text-lg text-black bg-white outline-none transition"
-              value={firstName}
-              onChange={e => setFirstName(e.target.value)}
-              disabled={isLoading}
-            />
+          {/* Name fields in a row */}
+          <div className="w-full flex flex-row gap-3">
+            <div className="flex-1 flex flex-col">
+              <label htmlFor="firstName" className="text-xs font-medium text-gray-600 mb-1 tracking-wide">First Name</label>
+              <input
+                id="firstName"
+                type="text"
+                autoComplete="given-name"
+                required
+                className="bg-gray-50 border border-gray-200 focus:border-black focus:bg-white rounded-md px-4 py-3 text-base text-black outline-none transition placeholder:text-gray-400"
+                placeholder="First Name"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+            <div className="flex-1 flex flex-col">
+              <label htmlFor="lastName" className="text-xs font-medium text-gray-600 mb-1 tracking-wide">Last Name</label>
+              <input
+                id="lastName"
+                type="text"
+                autoComplete="family-name"
+                required
+                className="bg-gray-50 border border-gray-200 focus:border-black focus:bg-white rounded-md px-4 py-3 text-base text-black outline-none transition placeholder:text-gray-400"
+                placeholder="Last Name"
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
           </div>
           <div className="w-full flex flex-col">
-            <label className="uppercase text-base tracking-wider text-gray-700 mb-1" htmlFor="lastName">
-              Last Name
-            </label>
-            <input
-              id="lastName"
-              type="text"
-              autoComplete="family-name"
-              required
-              className="border border-gray-300 focus:border-black rounded-none px-6 py-4 mb-2 text-lg text-black bg-white outline-none transition"
-              value={lastName}
-              onChange={e => setLastName(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-          <div className="w-full flex flex-col">
-            <label className="uppercase text-base tracking-wider text-gray-700 mb-1" htmlFor="email">
-              Email
-            </label>
+            <label htmlFor="email" className="text-xs font-medium text-gray-600 mb-1 tracking-wide">Email</label>
             <input
               id="email"
               type="email"
               autoComplete="email"
               required
-              className="border border-gray-300 focus:border-black rounded-none px-6 py-4 mb-2 text-lg text-black bg-white outline-none transition"
+              className="bg-gray-50 border border-gray-200 focus:border-black focus:bg-white rounded-md px-4 py-3 text-base text-black outline-none transition placeholder:text-gray-400"
+              placeholder="Email address"
               value={email}
               onChange={e => setEmail(e.target.value)}
               disabled={isLoading}
             />
           </div>
           <div className="w-full flex flex-col">
-            <label className="uppercase text-base tracking-wider text-gray-700 mb-1" htmlFor="password">
-              Password
-            </label>
+            <label htmlFor="password" className="text-xs font-medium text-gray-600 mb-1 tracking-wide">Password</label>
             <input
               id="password"
               type="password"
               autoComplete="new-password"
               required
-              className="border border-gray-300 focus:border-black rounded-none px-6 py-4 mb-2 text-lg text-black bg-white outline-none transition"
+              className="bg-gray-50 border border-gray-200 focus:border-black focus:bg-white rounded-md px-4 py-3 text-base text-black outline-none transition placeholder:text-gray-400"
+              placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               disabled={isLoading}

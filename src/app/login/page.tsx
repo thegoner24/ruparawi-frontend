@@ -156,29 +156,27 @@ export default function LoginPage() {
               </div>
             )}
             
-            <label className="uppercase text-base tracking-wider text-gray-700 mb-1" htmlFor="email">
-              Email
-            </label>
+            <label htmlFor="email" className="text-xs font-medium text-gray-600 mb-1 tracking-wide">Email</label>
             <input
               id="email"
               type="email"
               autoComplete="email"
               required
-              className="border border-gray-300 focus:border-black rounded-none px-6 py-4 mb-2 text-lg text-black bg-white outline-none transition"
+              className="bg-gray-50 border border-gray-200 focus:border-black focus:bg-white rounded-md px-4 py-3 text-base text-black outline-none transition placeholder:text-gray-400"
+              placeholder="Email address"
               value={email}
               onChange={e => setEmail(e.target.value)}
               disabled={isLoading}
             />
 
-            <label className="uppercase text-base tracking-wider text-gray-700 mb-1" htmlFor="password">
-              Password
-            </label>
+            <label htmlFor="password" className="text-xs font-medium text-gray-600 mb-1 tracking-wide">Password</label>
             <input
               id="password"
               type="password"
               autoComplete="current-password"
               required
-              className="border border-gray-300 focus:border-black rounded-none px-6 py-4 mb-2 text-lg text-black bg-white outline-none transition"
+              className="bg-gray-50 border border-gray-200 focus:border-black focus:bg-white rounded-md px-4 py-3 text-base text-black outline-none transition placeholder:text-gray-400"
+              placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               disabled={isLoading}
