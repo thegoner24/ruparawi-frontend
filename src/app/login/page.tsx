@@ -110,13 +110,13 @@ export default function LoginPage() {
   return (
     <main className="flex h-screen bg-white overflow-hidden">
       {/* Left image section (carousel) */}
-      <motion.div
-        initial={{ opacity: 0, x: -100, scale: 0.96, filter: 'blur(8px)' }}
-        animate={{ opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' }}
-        transition={{ duration: 1.3, ease: [0.4, 0, 0.2, 1] }}
-        className="hidden md:flex flex-1 items-center justify-center bg-gray-50 overflow-hidden relative shadow-[0_8px_32px_0_rgba(232,216,185,0.15)] border-r border-[#e8d8b9]"
-        style={{ boxShadow: '0 8px 32px 0 #e8d8b9, 0 1.5px 12px 0 #fffbe6' }}
-      >
+      <div style={{ boxShadow: '0 8px 32px 0 #e8d8b9, 0 1.5px 12px 0 #fffbe6' }}>
+        <motion.div
+          initial={{ opacity: 0, x: -100, scale: 0.96, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' }}
+          transition={{ duration: 1.3, ease: [0.4, 0, 0.2, 1] }}
+          className="hidden md:flex flex-1 items-center justify-center bg-gray-50 overflow-hidden relative shadow-[0_8px_32px_0_rgba(232,216,185,0.15)] border-r border-[#e8d8b9]"
+        >
         {/* Previous image (fading out) */}
         {fade ? (
           <>
@@ -161,6 +161,7 @@ export default function LoginPage() {
           ))}
         </div>
       </motion.div>
+      </div>
       {/* Right form section */}
       <motion.div
         initial={{ opacity: 0, x: 80 }}
