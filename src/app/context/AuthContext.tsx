@@ -8,12 +8,13 @@ interface UserInfo {
 }
 
 export type UserRole = 'admin' | 'buyer' | 'vendor';
+export type UserRoles = UserRole[]; // New type for multiple roles
 
 interface AuthContextType {
   token: string | null;
-  role: UserRole | null;
+  roles: UserRoles;
   user: UserInfo | null;
-  setAuth: (token: string, role: UserRole, user: UserInfo) => void;
+  setAuth: (token: string, roles: UserRoles, user: UserInfo) => void;
   clearAuth: () => void;
 }
 
@@ -21,39 +22,47 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
+  const [roles, setRoles] = useState<UserRoles>([]);
   const [user, setUser] = useState<UserInfo | null>(null);
 
-  const setAuth = (token: string, role: UserRole, user: UserInfo) => {
+  const setAuth = (token: string, roles: UserRoles, user: UserInfo) => {
     setToken(token);
-    setRole(role);
+    setRoles(roles);
     setUser(user);
-    localStorage.setItem("jwt", token);
-    localStorage.setItem("role", role);
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("roles", JSON.stringify(roles));
     localStorage.setItem("authUser", JSON.stringify(user));
   };
 
   const clearAuth = () => {
     setToken(null);
-    setRole('buyer');
+    setRoles([]);
     setUser(null);
-    localStorage.removeItem("jwt");
-    localStorage.removeItem("role");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("roles");
     localStorage.removeItem("authUser");
   };
 
   useEffect(() => {
     const storedToken = localStorage.getItem("authToken");
     const storedUser = localStorage.getItem("authUser");
-    const storedRole = localStorage.getItem("role");
-    const validRoles = ['admin', 'buyer', 'vendor'];
+    const storedRoles = localStorage.getItem("roles");
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
-      if (storedRole && validRoles.includes(storedRole)) {
-        setRole(storedRole as UserRole);
+      if (storedRoles) {
+        try {
+          const parsedRoles = JSON.parse(storedRoles);
+          if (Array.isArray(parsedRoles)) {
+            setRoles(parsedRoles);
+          } else {
+            setRoles([]);
+          }
+        } catch {
+          setRoles([]);
+        }
       } else {
-        setRole('buyer');
+        setRoles([]);
       }
     }
   }, []);
@@ -61,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider value={{
       token,
-      role: (role === 'admin' || role === 'buyer' || role === 'vendor') ? role : 'buyer',
+      roles,
       user,
       setAuth,
       clearAuth
