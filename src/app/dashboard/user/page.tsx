@@ -4,16 +4,17 @@ import { HiUser, HiClipboardList, HiHeart, HiTrash } from "react-icons/hi";
 
 // --- MAIN DASHBOARD PAGE ---
 export default function UserDashboardPage() {
-  // Sidebar navigation state
   const [activeSection, setActiveSection] = useState("profile");
 
   // Mock profile state (no backend, no token required)
   const [profile, setProfile] = useState<any>({
-    first_name: "Jane",
-    last_name: "Doe",
-    bio: "Fashion enthusiast. Love traditional fabrics!",
-    profile_image_url: "/images/profile-default.jpg",
-    email: "janedoe@example.com"
+    name: "",
+    email: "",
+    phone_number: "",
+    address: "",
+    bio: "",
+    password: "",
+    profile_image_url: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,27 +47,11 @@ export default function UserDashboardPage() {
     },
   ]);
 
-
-
-  // Profile completion calculation
-  const requiredFields = ["first_name", "last_name", "bio"];
-  const optionalFields = ["profile_image_url"];
-  const completedRequired = requiredFields.filter((f) => profile?.[f]).length;
-  const completedOptional = optionalFields.filter((f) => profile?.[f]).length;
-  const completionPercentage = Math.round(
-    ((completedRequired / requiredFields.length) * 0.7 +
-      (optionalFields.length
-        ? (completedOptional / optionalFields.length) * 0.3
-        : 0)) *
-      100
-  );
-
   // Profile update handler (mock, no API)
   const handleProfileUpdate = (updatedProfile: any) => {
     setProfile(updatedProfile);
     alert("Profile updated!");
   };
-
 
   // Wishlist actions
   const removeFromWishlist = (itemId: number) =>
@@ -87,7 +72,6 @@ export default function UserDashboardPage() {
     }
   };
 
-  // Sidebar menu
   const menu = [
     { id: "profile", label: "Edit Profile", icon: HiUser },
     { id: "orders", label: "Order History", icon: HiClipboardList },
@@ -171,7 +155,6 @@ export default function UserDashboardPage() {
               <EditProfileForm
                 profile={profile}
                 onUpdate={handleProfileUpdate}
-                completion={completionPercentage}
                 loading={loading}
               />
             )}
@@ -347,22 +330,25 @@ export default function UserDashboardPage() {
 function EditProfileForm({
   profile,
   onUpdate,
-  completion,
   loading,
 }: {
   profile: any;
   onUpdate: (data: any) => void;
-  completion: number;
   loading: boolean;
 }) {
   const [formData, setFormData] = useState({
+    name: profile.name || "",
+    email: profile.email || "",
+    phone_number: profile.phone_number || "",
+    address: profile.address || "",
     bio: profile.bio || "",
-    first_name: profile.first_name || "",
-    last_name: profile.last_name || "",
+    password: "",
     profile_image_url: profile.profile_image_url || "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>(profile.profile_image_url || "");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -371,69 +357,106 @@ function EditProfileForm({
     setFormData((fd) => ({ ...fd, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    // No API call, just update local state
-    onUpdate({ ...profile, ...formData });
-    alert("Profile updated!");
+    onUpdate({
+      ...profile,
+      ...formData,
+      profile_image_url: imagePreview,
+    });
     setSaving(false);
   };
-
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <div className="text-red-600">{error}</div>}
-      {/* Profile Completion */}
-      <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-        <h3 className="text-lg font-medium mb-2">
-          Profile Completion: {completion}%
-        </h3>
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
-          <div
-            className="bg-black h-2.5 rounded-full"
-            style={{ width: `${completion}%` }}
-          ></div>
+      {/* Profile Photo */}
+      <div className="flex flex-col items-center mb-6">
+        <div className="w-24 h-24 bg-gray-100 rounded-full overflow-hidden mb-2 flex items-center justify-center border border-gray-300">
+          {imagePreview ? (
+            <img
+              src={imagePreview}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <HiUser className="w-12 h-12 text-gray-400" />
+          )}
         </div>
+        <label>
+          <span className="bg-black text-white px-4 py-2 rounded text-sm font-semibold cursor-pointer hover:bg-gray-700 transition">
+            Change Photo
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </span>
+        </label>
       </div>
-      {/* Profile Image URL */}
+      {/* Name */}
       <div>
-        <label className="block font-medium mb-1">Profile Image URL</label>
+        <label className="block font-medium mb-1">Name</label>
         <input
-          name="profile_image_url"
-          value={formData.profile_image_url}
+          name="name"
+          type="text"
+          placeholder="Your name"
+          value={formData.name}
           onChange={handleChange}
-          className="border px-4 py-2 rounded w-full"
-        />
-        {formData.profile_image_url && (
-          <img
-            src={formData.profile_image_url}
-            alt="Profile"
-            className="h-16 w-16 rounded-full object-cover mt-2"
-          />
-        )}
-      </div>
-      {/* First Name */}
-      <div>
-        <label className="block font-medium mb-1">First Name</label>
-        <input
-          name="first_name"
-          value={formData.first_name}
-          onChange={handleChange}
-          className="border px-4 py-2 rounded w-full"
+          className="border px-4 py-2 rounded w-full placeholder-gray-400"
           required
         />
       </div>
-      {/* Last Name */}
+      {/* Email */}
       <div>
-        <label className="block font-medium mb-1">Last Name</label>
+        <label className="block font-medium mb-1">Email</label>
         <input
-          name="last_name"
-          value={formData.last_name}
+          name="email"
+          type="email"
+          placeholder="you@email.com"
+          value={formData.email}
           onChange={handleChange}
-          className="border px-4 py-2 rounded w-full"
+          className="border px-4 py-2 rounded w-full placeholder-gray-400"
           required
+        />
+      </div>
+      {/* Phone Number */}
+      <div>
+        <label className="block font-medium mb-1">Phone Number</label>
+        <input
+          name="phone_number"
+          type="tel"
+          placeholder="Your phone number"
+          value={formData.phone_number}
+          onChange={handleChange}
+          className="border px-4 py-2 rounded w-full placeholder-gray-400"
+        />
+      </div>
+      {/* Address */}
+      <div>
+        <label className="block font-medium mb-1">Address</label>
+        <input
+          name="address"
+          type="text"
+          placeholder="Your address"
+          value={formData.address}
+          onChange={handleChange}
+          className="border px-4 py-2 rounded w-full placeholder-gray-400"
         />
       </div>
       {/* Bio */}
@@ -441,14 +464,27 @@ function EditProfileForm({
         <label className="block font-medium mb-1">Bio</label>
         <textarea
           name="bio"
+          placeholder="Tell us about yourself"
           value={formData.bio}
           onChange={handleChange}
-          className="border px-4 py-2 rounded w-full"
+          className="border px-4 py-2 rounded w-full placeholder-gray-400"
+        />
+      </div>
+      {/* Change Password */}
+      <div>
+        <label className="block font-medium mb-1">Change Password</label>
+        <input
+          name="password"
+          type="password"
+          placeholder="New password"
+          value={formData.password}
+          onChange={handleChange}
+          className="border px-4 py-2 rounded w-full placeholder-gray-400"
         />
       </div>
       <button
         type="submit"
-        className="w-fit px-12 py-3 bg-black text-white rounded-full font-semibold tracking-wide text-lg hover:bg-gray-900 transition"
+        className="w-fit px-12 py-3 bg-black text-white rounded-full font-semibold tracking-wide text-lg hover:bg-gray-700 transition"
         disabled={saving || loading}
       >
         {saving ? "Saving..." : "Save Changes"}
