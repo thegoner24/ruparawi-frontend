@@ -17,11 +17,20 @@ export interface AuthResponse {
   success: boolean;
   message: string;
   token?: string;
+  access_token?: string;
+  refresh_token?: string;
   user?: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    username?: string;
+    // Backend: role is array of objects with name property
+    role?: { name: string }[];
+    // Optionally keep roles for compatibility
+    roles?: string[];
+    // Other fields as needed
+    [key: string]: any;
   };
 }
 
@@ -39,8 +48,6 @@ export class AuthController {
         // If username is not provided, generate one from firstName and lastName
         username: userData.username || `${userData.firstName.toLowerCase()}_${userData.lastName.toLowerCase()}`
       };
-      
-      console.log('Sending registration data:', userDataWithUsername);
       
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
@@ -85,7 +92,6 @@ export class AuthController {
       });
       
       const data = await response.json();
-      
       if (!response.ok) {
         return {
           success: false,
@@ -93,9 +99,9 @@ export class AuthController {
         };
       }
       
-      // Store token in localStorage
-      if (data.token) {
-        localStorage.setItem('authToken', data.token);
+        // Store token in localStorage
+      if (data.access_token) {
+        localStorage.setItem('authToken', data.access_token);
       }
       
       return {
@@ -127,6 +133,44 @@ export class AuthController {
     return localStorage.getItem('authToken');
   }
   
+  // Get user profile with roles from /auth/me
+  static async getUserProfileWithRoles(): Promise<AuthResponse> {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'No authentication token found'
+        };
+      }
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Failed to fetch user profile'
+        };
+      }
+      return {
+        success: true,
+        message: 'User profile retrieved successfully',
+        user: data
+      };
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during profile fetch';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  }
+
   // Get current user profile
   static async getCurrentUser(): Promise<AuthResponse> {
     try {
@@ -139,12 +183,13 @@ export class AuthController {
         };
       }
       
-      const response = await fetch(`${API_BASE_URL}/profile`, {
+      const response = await fetch(`${API_BASE_URL}/users/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
       
       const data = await response.json();

@@ -36,13 +36,42 @@ export default function LoginPage() {
           (userObj.first_name || userObj.firstName || "") +
           ((userObj.last_name || userObj.lastName) ? " " + (userObj.last_name || userObj.lastName) : "");
         const userInfo = { name, username, avatar };
-        const validRoles = ['admin', 'buyer', 'vendor'];
-        let role: 'admin' | 'buyer' | 'vendor' = 'buyer';
-        if (userObj.role && validRoles.includes(userObj.role)) {
-          role = userObj.role;
+        // Handle multiple roles
+        let roles: string[] = [];
+        if (Array.isArray(userObj.roles)) {
+          // If roles is an array of objects (e.g., [{ role: 'admin' }, ...]), extract the role strings
+          if (userObj.roles.length > 0 && typeof userObj.roles[0] === 'object' && userObj.roles[0] !== null && 'role' in userObj.roles[0]) {
+            roles = userObj.roles.map((r: any) => r.role).filter((r: any) => typeof r === 'string');
+          } else {
+            roles = userObj.roles;
+          }
+        } else if (userObj.role) {
+          roles = [userObj.role];
         }
-        setAuth(result.token ?? '', role, userInfo);
-        router.push('/shop');
+        // Fetch user profile with roles from /auth/me
+        const profileResult = await AuthController.getUserProfileWithRoles();
+        let profileRoles: string[] = [];
+
+        const nestedUser = profileResult.user?.user;
+
+        if (
+          profileResult.success &&
+          nestedUser &&
+          Array.isArray(nestedUser.role)
+        ) {
+          profileRoles = nestedUser.role
+            .map((r: any) => r.name)
+            .filter((name: any) => typeof name === 'string');
+        }
+        if (result.access_token) {
+          localStorage.setItem('authToken', result.access_token);
+        }
+        setAuth(result.access_token ?? '', profileRoles as ('admin'|'buyer'|'vendor')[], userInfo);
+        // Wait for the token to be set before navigating (guarantee async storage)
+        setTimeout(() => {
+          router.push('/shop');
+        }, 100);
+
       } else {
         // Display error message
         setError(result.message);
