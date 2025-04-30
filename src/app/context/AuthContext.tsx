@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(token);
     setRole(role);
     setUser(user);
-    localStorage.setItem("authToken", token);
+    localStorage.setItem("jwt", token);
     localStorage.setItem("role", role);
     localStorage.setItem("authUser", JSON.stringify(user));
   };
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null);
     setRole('buyer');
     setUser(null);
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("jwt");
     localStorage.removeItem("role");
     localStorage.removeItem("authUser");
   };
