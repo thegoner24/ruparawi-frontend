@@ -9,112 +9,89 @@ type ProductColor = string;
 type ProductSize = string;
 
 interface ProductDetail {
-  id: string;
+  id: number;
   name: string;
-  category: string;
-  images: string[];
+  description?: string;
   price: number;
-  rating: number;
-  reviewCount: number;
-  description: string;
-  details: string[];
-  sizes: ProductSize[];
-  colors: ProductColor[];
-  isFeatured: boolean;
-  isNew: boolean;
-  inStock: boolean;
+  tags: string[] | string;
+  sustainability_attributes?: string[] | string;
+  stock_quantity?: number;
+  min_order_quantity?: number;
+  is_active?: boolean;
+  image?: string;
+  [key: string]: any;
 }
 
-// Sample product data - in a real app, you would fetch this from an API
-const products: ProductDetail[] = [
-  {
-    id: "modern-hooded-jacket",
-    name: "Modern Hooded Jacket",
-    category: "Jackets",
-    images: [
-      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1578681994506-b8f463449011?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1592878940526-0214b0f374f6?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1580331451062-99ff207885a7?auto=format&fit=crop&w=800&q=80"
-    ],
-    price: 3900000,
-    rating: 4.5,
-    reviewCount: 24,
-    description: "A modern hooded jacket crafted with premium materials for both style and comfort. Features a relaxed fit with smart pockets and adjustable hood. Perfect for layering in transitional weather.",
-    details: [
-      "100% premium cotton shell",
-      "Relaxed, contemporary fit",
-      "Two-way zipper closure",
-      "Adjustable drawstring hood",
-      "Side pockets with hidden zippers",
-      "Machine washable"
-    ],
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Black", "Navy", "Olive"],
-    isFeatured: true,
-    isNew: true,
-    inStock: true
-  },
-  {
-    id: "classic-oxford-shirt",
-    name: "Classic Oxford Shirt",
-    category: "Shirts",
-    images: [
-      "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1563630423918-b58f07336ac9?auto=format&fit=crop&w=800&q=80"
-    ],
-    price: 1200000,
-    rating: 4.2,
-    reviewCount: 18,
-    description: "A timeless Oxford shirt made from premium cotton with a classic button-down collar. Features a comfortable regular fit that's perfect for both casual and semi-formal occasions.",
-    details: [
-      "100% premium cotton",
-      "Regular fit",
-      "Button-down collar",
-      "Single chest pocket",
-      "Pearl buttons",
-      "Machine washable"
-    ],
-    sizes: ["S", "M", "L", "XL", "XXL"],
-    colors: ["White", "Light Blue", "Pink"],
-    isFeatured: false,
-    isNew: false,
-    inStock: true
-  }
-];
+// Product details will now be fetched from the API
 
 export default function ProductDetail() {
   const params = useParams();
   const productId = params.productId as string;
   
   const [product, setProduct] = useState<ProductDetail | null>(null);
+const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   
-  // Fetch product data
+  // Fetch product data from API
   useEffect(() => {
-    // Simulate API fetch
-    const fetchProduct = () => {
-      setLoading(true);
-      // Find product by ID
-      const foundProduct = products.find(p => p.id === productId);
-      
-      if (foundProduct) {
-        setProduct(foundProduct);
-        // Set defaults
-        setSelectedSize(foundProduct.sizes[0]);
-        setSelectedColor(foundProduct.colors[0]);
-      }
-      
-      setLoading(false);
-    };
-    
-    fetchProduct();
+    if (!productId) {
+      setError('Invalid product ID');
+      return;
+    }
+    setLoading(true);
+    fetch(`https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products/${parseInt(productId, 10)}`)
+      .then((res: Response) => {
+        if (!res.ok) throw new Error('Failed to fetch product');
+        return res.json();
+      })
+      .then(data => {
+        console.log('Fetched product data:', data);
+        if (data && data.product) {
+          // Parse tags and sustainability_attributes if needed
+          let prod = { ...data.product };
+          if (typeof prod.tags === 'string') {
+            try { prod.tags = JSON.parse(prod.tags.replace(/'/g, '"')); } catch { prod.tags = []; }
+          }
+          if (typeof prod.sustainability_attributes === 'string') {
+            try { prod.sustainability_attributes = JSON.parse(prod.sustainability_attributes.replace(/'/g, '"')); } catch { prod.sustainability_attributes = []; }
+          }
+          setProduct(prod);
+          setError(null);
+        } else {
+          setProduct(null);
+          setError('Invalid product data from API');
+        }
+        // Set defaults if available
+        if (data.product && data.product.sizes && data.product.sizes.length > 0) setSelectedSize(data.product.sizes[0]);
+        if (data.product && data.product.colors && data.product.colors.length > 0) setSelectedColor(data.product.colors[0]);
+        setLoading(false);
+      })
+      .catch((err: any) => {
+        console.error('Error loading product:', err);
+        setError('Failed to load product data');
+        setLoading(false);
+      });
   }, [productId]);
+
+  // Fetch all products for related products section
+  const [allProducts, setAllProducts] = useState<ProductDetail[]>([]);
+  useEffect(() => {
+    fetch('https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products')
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        const products = Array.isArray(data.products) ? data.products : data;
+        console.log('Fetched all products:', products);
+        setAllProducts(products);
+      })
+      .catch((err) => {
+        console.error('Error fetching all products:', err);
+        setAllProducts([]);
+      });
+  }, []);
   
   // Handle quantity changes
   const decreaseQuantity = () => {
@@ -149,6 +126,11 @@ export default function ProductDetail() {
   
   return (
     <div className="min-h-screen bg-white">
+      {error && (
+        <div className="bg-red-100 text-red-700 p-4 mb-4 rounded">
+          {error}
+        </div>
+      )}
       {/* Breadcrumb */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center text-sm text-gray-500">
@@ -156,120 +138,77 @@ export default function ProductDetail() {
           <span className="mx-2">/</span>
           <Link href="/shop" className="hover:text-black transition-colors">Shop</Link>
           <span className="mx-2">/</span>
-          <Link href={`/shop?category=${product.category}`} className="hover:text-black transition-colors">{product.category}</Link>
-          <span className="mx-2">/</span>
           <span className="text-black">{product.name}</span>
         </div>
       </div>
       
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Images */}
+          {/* No images field in new schema. Show a placeholder image only. */}
           <div className="space-y-4">
-            {/* Main Image */}
-            <div className="relative aspect-square overflow-hidden bg-[#f8f5f0] rounded-lg border border-[#e8d8b9]">
+            <div className="relative aspect-square overflow-hidden bg-[#f8f5f0] rounded-lg border border-[#e8d8b9] flex items-center justify-center">
               <img 
-                src={product.images[selectedImage]} 
-                alt={product.name} 
-                className="w-full h-full object-contain"
+                src="/placeholder.png"
+                alt="No image"
+                className="w-1/2 h-1/2 object-contain opacity-40"
               />
-              
-              {product.isNew && (
-                <div className="absolute top-4 left-4 z-10 bg-black text-white text-xs font-bold px-2 py-1 rounded">
-                  NEW
-                </div>
-              )}
-            </div>
-            
-            {/* Thumbnail Images */}
-            <div className="flex space-x-2 overflow-x-auto py-2">
-              {product.images.map((image: string, index: number) => (
-                <button 
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden ${selectedImage === index ? 'ring-2 ring-black' : 'ring-1 ring-[#e8d8b9]'}`}
-                >
-                  <img 
-                    src={image} 
-                    alt={`${product.name} - View ${index + 1}`} 
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
             </div>
           </div>
           
           {/* Product Info */}
           <div className="flex flex-col">
             {/* Product Title and Price */}
-            <h1 className="text-3xl font-bold text-black mb-2">{product.name}</h1>
+            <h1 className="text-3xl font-bold text-black mb-2">{product.name || "Product name not available"}</h1>
             <div className="flex items-center mb-4">
-              <div className="flex items-center mr-4">
-                {[...Array(5)].map((_, i) => (
-                  <svg 
-                    key={i} 
-                    className={`w-4 h-4 ${i < Math.floor(product.rating) ? 'text-[#d4b572]' : 'text-gray-300'}`} 
-                    fill="currentColor" 
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-                <span className="text-gray-700 text-sm ml-1">{product.rating} ({product.reviewCount} reviews)</span>
-              </div>
+              {/* No rating/review fields in new schema. */}
+              
               <span className="text-2xl font-bold text-black">
-                {product.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })}
+                {typeof product.price === 'number'
+                  ? product.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
+                  : 'Price not available'}
               </span>
             </div>
             
             {/* Product Description */}
-            <p className="text-gray-700 mb-6">{product.description}</p>
+            <p className="text-gray-700 mb-6">{product.description || 'No description available.'}</p>
             
-            {/* Color Selection */}
+            {/* Tags */}
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Color</h3>
-              <div className="flex space-x-2">
-                {product.colors.map((color: ProductColor) => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedColor === color ? 'ring-2 ring-black ring-offset-2' : ''}`}
-                    style={{ backgroundColor: color.toLowerCase() === 'white' ? 'white' : color.toLowerCase() === 'light blue' ? '#add8e6' : color.toLowerCase() === 'pink' ? '#ffc0cb' : color.toLowerCase() === 'navy' ? '#000080' : color.toLowerCase() === 'olive' ? '#808000' : color.toLowerCase() }}
-                  >
-                    {selectedColor === color && color.toLowerCase() === 'white' && (
-                      <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                    {selectedColor === color && color.toLowerCase() !== 'white' && (
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-2 text-sm text-gray-500">Selected: {selectedColor}</p>
-            </div>
-            
-            {/* Size Selection */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-900">Size</h3>
-                <button className="text-sm font-medium text-black hover:text-[#d4b572] transition-colors">Size Guide</button>
-              </div>
-              <div className="grid grid-cols-5 gap-2">
-                {product.sizes.map((size: ProductSize) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`py-2 border ${selectedSize === size ? 'border-black bg-black text-white' : 'border-gray-300 hover:border-[#e8d8b9]'} rounded-md text-sm font-medium transition-colors`}
-                  >
-                    {size}
-                  </button>
-                ))}
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Tags</h3>
+              <div className="flex flex-wrap gap-2">
+                {Array.isArray(product.tags) && product.tags.length > 0 ? (
+                  product.tags.map((tag: string) => (
+                    <span key={tag} className="px-2 py-1 bg-gray-200 rounded text-xs text-gray-700">{tag}</span>
+                  ))
+                ) : (
+                  <span className="text-gray-400 text-sm italic">No tags</span>
+                )}
               </div>
             </div>
+            {/* Sustainability Attributes */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Sustainability Attributes</h3>
+              <div className="flex flex-wrap gap-2">
+                {Array.isArray(product.sustainability_attributes) && product.sustainability_attributes.length > 0 ? (
+                  product.sustainability_attributes.map((attr: string) => (
+                    <span key={attr} className="px-2 py-1 bg-green-100 rounded text-xs text-green-700">{attr}</span>
+                  ))
+                ) : (
+                  <span className="text-gray-400 text-sm italic">No sustainability attributes</span>
+                )}
+              </div>
+            </div>
+            {/* Stock and Status */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Stock &amp; Status</h3>
+              <div className="flex flex-col gap-1">
+                <span>Stock: <b>{typeof product.stock_quantity === 'number' ? product.stock_quantity : 'N/A'}</b></span>
+                <span>Minimum Order: <b>{typeof product.min_order_quantity === 'number' ? product.min_order_quantity : 'N/A'}</b></span>
+                <span>Status: <b className={product.is_active ? 'text-green-600' : 'text-red-600'}>{product.is_active ? 'Active' : 'Inactive'}</b></span>
+              </div>
+            </div>
+            
+            
             
             {/* Quantity Selector */}
             <div className="mb-6">
@@ -308,15 +247,7 @@ export default function ProductDetail() {
               Add to Wishlist
             </button>
             
-            {/* Product Details */}
-            <div className="border-t border-[#e8d8b9] pt-6">
-              <h3 className="text-lg font-medium text-black mb-4">Product Details</h3>
-              <ul className="list-disc pl-5 text-gray-700 space-y-1">
-                {product.details.map((detail: string, index: number) => (
-                  <li key={index}>{detail}</li>
-                ))}
-              </ul>
-            </div>
+            
           </div>
         </div>
       </div>
@@ -325,43 +256,73 @@ export default function ProductDetail() {
       <section className="container mx-auto px-4 py-12 border-t border-[#e8d8b9] mt-12">
         <h2 className="text-2xl font-bold text-black mb-8">You May Also Like</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.filter(p => p.id !== productId).map(relatedProduct => (
-            <Link href={`/shop/${relatedProduct.id}`} key={relatedProduct.id} className="group">
-              <div className="relative overflow-hidden rounded-lg bg-white shadow-md hover:shadow-xl transition-shadow duration-300">
-                {relatedProduct.isNew && (
-                  <div className="absolute top-4 left-4 z-10 bg-black text-white text-xs font-bold px-2 py-1 rounded">
-                    NEW
-                  </div>
-                )}
-                
-                <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden">
-                  <img 
-                    src={relatedProduct.images[0]} 
-                    alt={relatedProduct.name} 
-                    className="h-64 w-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 
-                  />
-                </div>
-                
-                <div className="p-4">
-                  <h3 className="text-gray-900 font-medium text-lg mb-1">{relatedProduct.name}</h3>
-                  <p className="text-gray-500 text-sm mb-2">{relatedProduct.category}</p>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-900 font-bold">
-                      {relatedProduct.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })}
-                    </span>
-                    
-                    <div className="flex items-center">
-                      <svg className="w-4 h-4 text-[#d4b572]" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      <span className="text-gray-700 text-sm ml-1">{relatedProduct.rating}</span>
+          {Array.isArray(allProducts) && allProducts.length > 0 ? (
+            allProducts
+              .filter((relatedProduct: ProductDetail) => relatedProduct.id && (!product || relatedProduct.id !== (product as any).id))
+              .map((relatedProduct: ProductDetail) => {
+                // Parse tags if needed
+                let tags: string[] = [];
+                if (Array.isArray(relatedProduct.tags)) {
+                  tags = relatedProduct.tags;
+                } else if (typeof relatedProduct.tags === 'string') {
+                  try {
+                    tags = JSON.parse(relatedProduct.tags.replace(/'/g, '"'));
+                  } catch {
+                    tags = [];
+                  }
+                }
+                // Parse sustainability_attributes if needed
+                let sustainability: string[] = [];
+                if (Array.isArray(relatedProduct.sustainability_attributes)) {
+                  sustainability = relatedProduct.sustainability_attributes;
+                } else if (typeof relatedProduct.sustainability_attributes === 'string') {
+                  try {
+                    sustainability = JSON.parse(relatedProduct.sustainability_attributes.replace(/'/g, '"'));
+                  } catch {
+                    sustainability = [];
+                  }
+                }
+                return (
+                  <Link href={`/shop/${relatedProduct.id}`} key={relatedProduct.id} className="group border rounded-lg p-4 bg-white shadow-sm hover:shadow-lg transition-shadow block">
+                    <div className="flex flex-col items-start">
+                      <div className="w-full flex justify-center mb-2">
+                        <img
+                          src={relatedProduct.image || '/placeholder.png'}
+                          alt={relatedProduct.name || 'Product'}
+                          className="w-24 h-24 object-contain bg-gray-100 rounded mb-2"
+                          onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
+                        />
+                      </div>
+                      <h3 className="text-gray-900 font-medium text-lg mb-1">{relatedProduct.name || "Name not available"}</h3>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {tags.length > 0 ? tags.map((tag: string) => (
+                          <span key={tag} className="px-2 py-1 bg-gray-200 rounded text-xs text-gray-700">{tag}</span>
+                        )) : <span className="text-gray-400 text-xs italic">No tags</span>}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {sustainability.length > 0 ? sustainability.map((attr: string) => (
+                          <span key={attr} className="px-2 py-1 bg-green-100 rounded text-xs text-green-700">{attr}</span>
+                        )) : <span className="text-gray-400 text-xs italic">No sustainability</span>}
+                      </div>
+                      <div className="flex justify-between items-center w-full">
+                        <span className="text-gray-900 font-bold">
+                          {typeof relatedProduct.price === 'number'
+                            ? relatedProduct.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
+                            : 'Price not available'}
+                        </span>
+                        <span className={relatedProduct.is_active ? 'text-green-600 text-xs' : 'text-red-600 text-xs'}>
+                          {relatedProduct.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                      <div className="text-xs mt-2">Stock: <b>{typeof relatedProduct.stock_quantity === 'number' ? relatedProduct.stock_quantity : 'N/A'}</b></div>
+                      <div className="text-xs">Min Order: <b>{typeof relatedProduct.min_order_quantity === 'number' ? relatedProduct.min_order_quantity : 'N/A'}</b></div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
+                  </Link>
+                );
+              })
+          ) : (
+            <div className="col-span-4 text-gray-400 text-center italic">No related products found.</div>
+          )}
         </div>
       </section>
     </div>

@@ -12,89 +12,7 @@ const categories = [
   "Limited Edition"
 ];
 
-// Sample products
-const products = [
-  {
-    id: "modern-hooded-jacket",
-    name: "Modern Hooded Jacket",
-    category: "Jackets",
-    image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80",
-    price: 3900000,
-    rating: 4.5,
-    isFeatured: true,
-    isNew: true
-  },
-  {
-    id: "classic-oxford-shirt",
-    name: "Classic Oxford Shirt",
-    category: "Shirts",
-    image: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=800&q=80",
-    price: 1200000,
-    rating: 4.2,
-    isFeatured: false,
-    isNew: false
-  },
-  {
-    id: "structured-blazer",
-    name: "Structured Blazer",
-    category: "Jackets",
-    image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&q=80",
-    price: 2500000,
-    rating: 4.8,
-    isFeatured: true,
-    isNew: false
-  },
-  {
-    id: "linen-button-up",
-    name: "Linen Button-Up",
-    category: "Shirts",
-    image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80",
-    price: 890000,
-    rating: 4.0,
-    isFeatured: false,
-    isNew: true
-  },
-  {
-    id: "leather-weekender-bag",
-    name: "Leather Weekender Bag",
-    category: "Accessories",
-    image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80",
-    price: 4200000,
-    rating: 4.9,
-    isFeatured: true,
-    isNew: false
-  },
-  {
-    id: "handcrafted-silk-tie",
-    name: "Handcrafted Silk Tie",
-    category: "Accessories",
-    image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=800&q=80",
-    price: 780000,
-    rating: 4.4,
-    isFeatured: false,
-    isNew: false
-  },
-  {
-    id: "limited-edition-denim-jacket",
-    name: "Limited Edition Denim Jacket",
-    category: "Limited Edition",
-    image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80",
-    price: 5500000,
-    rating: 5.0,
-    isFeatured: true,
-    isNew: true
-  },
-  {
-    id: "slim-fit-chinos",
-    name: "Slim Fit Chinos",
-    category: "Pants",
-    image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=800&q=80",
-    price: 1100000,
-    rating: 4.3,
-    isFeatured: false,
-    isNew: false
-  }
-];
+
 
 // Define cart item type
 interface CartItem {
@@ -108,6 +26,29 @@ interface CartItem {
 }
 
 export default function ShopPage() {
+  // Products state and fetch logic (MOVED INSIDE COMPONENT)
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    fetch('https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch products');
+        return res.json();
+      })
+      .then(data => {
+        setProducts(data.products || data); // Adjust if API response shape is different
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortOption, setSortOption] = useState("featured");

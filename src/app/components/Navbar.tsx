@@ -147,15 +147,6 @@ export default function Navbar() {
                       Admin Dashboard
                     </Link>
                   )}
-                  {role === 'vendor' && (
-                    <Link
-                      href="/dashboard/vendor"
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      Vendor Dashboard
-                    </Link>
-                  )}
                   {(role === 'buyer' || !role) && (
                     <Link
                       href="/dashboard/user"

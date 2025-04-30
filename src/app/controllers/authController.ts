@@ -85,7 +85,7 @@ export class AuthController {
       });
       
       const data = await response.json();
-      
+      console.log(data,"*30");
       if (!response.ok) {
         return {
           success: false,
@@ -93,9 +93,12 @@ export class AuthController {
         };
       }
       
+      console.log('window is', typeof window) 
+
       // Store token in localStorage
-      if (data.token) {
-        localStorage.setItem('authToken', data.token);
+      if (data.access_token) {
+        localStorage.setItem('authToken', data.access_token);
+        console.log("token stored");
       }
       
       return {
@@ -114,17 +117,17 @@ export class AuthController {
   
   // Logout user
   static logout(): void {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('jwt');
   }
   
   // Check if user is authenticated
   static isAuthenticated(): boolean {
-    return !!localStorage.getItem('authToken');
+    return !!localStorage.getItem('jwt');
   }
   
   // Get authentication token
   static getToken(): string | null {
-    return localStorage.getItem('authToken');
+    return localStorage.getItem('jwt');
   }
   
   // Get current user profile
