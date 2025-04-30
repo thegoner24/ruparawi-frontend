@@ -1,31 +1,32 @@
 import React from "react";
+import Link from "next/link";
 
 interface Article {
+  id: string;
   title: string;
   imageUrl: string;
-  href?: string;
 }
 
 const articles: Article[] = [
   {
+    id: "1",
     title: "Cherishing the Little Things: Putri Sulistyowati’s Family Story",
     imageUrl: "https://images.unsplash.com/photo-1630929436231-91f4c6fe4884?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    href: "#",
   },
   {
+    id: "2",
     title: "Everyday Joys and Meaningful Choices: Titi Barcham’s Family Story",
     imageUrl: "https://images.unsplash.com/photo-1695306441929-0082158cfc27?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    href: "#",
   },
   {
+    id: "3",
     title: "Tradition Meets Modernity: Sari Dewi’s Inspiring Journey",
     imageUrl: "https://plus.unsplash.com/premium_photo-1733306529857-34bd61ff63b7?q=80&w=1984&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    href: "#",
   },
   {
+    id: "4",
     title: "A Legacy of Love: The Ramadhani Family’s Story",
     imageUrl: "https://images.unsplash.com/photo-1616125162686-770bf85622b9?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    href: "#",
   },
 ];
 
@@ -33,7 +34,7 @@ export default function ArticleSection() {
   return (
     <section className="w-full bg-white mt-16">
       <div className="w-full flex flex-col md:grid md:grid-cols-2 gap-0">
-        {/* Left: Title and button - Sticky on desktop, normal on mobile */}
+        {/* Left: Title and button */}
         <div className="flex flex-col justify-center items-start px-6 py-12 md:px-16 lg:px-24 md:py-8 md:h-screen md:sticky md:top-0 bg-white z-10">
           <h2 className="text-3xl md:text-4xl font-light mb-6 text-black">Latest Articles</h2>
           <p className="text-gray-700 mb-8 max-w-md">
@@ -47,14 +48,14 @@ export default function ArticleSection() {
           </a>
         </div>
         
-        {/* Right: Articles grid - Scrollable */}
+        {/* Right: Articles grid */}
         <div className="grid grid-cols-1 gap-0 md:min-h-screen md:overflow-y-auto border-t md:border-t-0 border-gray-200 mt-8 md:mt-0">
-          {/* First two articles in a grid */}
+          {/* First two articles */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:border-l md:border-gray-200">
-            {articles.slice(0, 2).map((article, idx) => (
-              <a
-                key={idx}
-                href={article.href}
+            {articles.slice(0, 2).map((article) => (
+              <Link
+                key={article.id}
+                href={`/articles/${article.id}`}
                 className="group overflow-hidden border-b border-gray-200 relative h-[400px] md:h-[450px] flex flex-col"
               >
                 <div className="w-full h-[250px] md:h-[300px] overflow-hidden">
@@ -70,16 +71,16 @@ export default function ArticleSection() {
                   </h3>
                   <div className="text-sm text-gray-600">Read Article →</div>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
           
-          {/* Remaining articles in a grid */}
+          {/* Remaining articles */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-l border-gray-200">
-            {articles.slice(2).map((article, idx) => (
-              <a
-                key={idx}
-                href={article.href}
+            {articles.slice(2).map((article) => (
+              <Link
+                key={article.id}
+                href={`/articles/${article.id}`}
                 className="group overflow-hidden border-b border-gray-200 relative h-[450px] flex flex-col"
               >
                 <div className="w-full h-[300px] overflow-hidden">
@@ -95,7 +96,7 @@ export default function ArticleSection() {
                   </h3>
                   <div className="text-sm text-gray-600">Read Article →</div>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>

@@ -1,26 +1,53 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { HiUser, HiClipboardList, HiHeart, HiTrash } from "react-icons/hi";
+import AuthController from "../../controllers/authController";
+import Image from 'next/image';
+import Link from 'next/link';
 
-// --- MAIN DASHBOARD PAGE ---
+// API URL - consistent with your other files
+const API_BASE_URL = "https://mad-adriane-dhanapersonal-9be85724.koyeb.app";
+
+interface UserProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  address?: string;
+  bio?: string;
+  profileImageUrl?: string;
+}
+
+interface Order {
+  id: string;
+  date: string;
+  status: string;
+  total: string;
+  items: {
+    name: string;
+    price: string;
+    quantity: number;
+  }[];
+}
+
+interface WishlistItem {
+  id: number;
+  name: string;
+  price: string;
+  imageUrl: string;
+}
+
 export default function UserDashboardPage() {
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState("profile");
-
-  // Mock profile state (no backend, no token required)
-  const [profile, setProfile] = useState<any>({
-    name: "",
-    email: "",
-    phone_number: "",
-    address: "",
-    bio: "",
-    password: "",
-    profile_image_url: "",
-  });
-  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Dummy order and wishlist data (not connected to backend)
-  const orders = [
+  // Dummy order and wishlist data (keep as-is)
+  const orders: Order[] = [
     {
       id: "ORD-2025-001",
       date: "April 26, 2025",
@@ -32,7 +59,7 @@ export default function UserDashboardPage() {
       ],
     },
   ];
-  const [wishlistItems, setWishlistItems] = useState([
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([
     {
       id: 1,
       name: "Handwoven Batik Tunic",
@@ -47,21 +74,99 @@ export default function UserDashboardPage() {
     },
   ]);
 
-  // Profile update handler (mock, no API)
-  const handleProfileUpdate = (updatedProfile: any) => {
+  // Helper to refresh JWT
+  const refreshToken = async (): Promise<string | null> => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // if your backend uses httpOnly cookies
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem("authToken", data.access_token);
+        return data.access_token;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Redirect to login if no JWT is found at all
+  useEffect(() => {
+    const token = AuthController.getToken();
+    if (!token) {
+      router.push("/login");
+    }
+  }, [router]);
+
+  // Fetch user profile with token refresh
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        let token = AuthController.getToken();
+        if (!token) {
+          setError("No authentication token found");
+          router.push("/login");
+          return;
+        }
+
+        let res = await fetch(`${API_BASE_URL}/auth/me`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        // If unauthorized or signature error, try refresh
+        if (res.status === 401 || res.status === 422) {
+          token = await refreshToken();
+          if (!token) {
+            router.push("/login");
+            return;
+          }
+          res = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+        }
+
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const data = await res.json();
+        if (data.success && data.user) {
+          setProfile(data.user);
+        } else {
+          setError(data.message || "Failed to load profile");
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [router]);
+
+  const handleProfileUpdate = (updatedProfile: UserProfile) => {
     setProfile(updatedProfile);
     alert("Profile updated!");
   };
 
-  // Wishlist actions
   const removeFromWishlist = (itemId: number) =>
     setWishlistItems((items) => items.filter((item) => item.id !== itemId));
-  const addToCart = (item: typeof wishlistItems[0]) => {
+  const addToCart = (item: WishlistItem) => {
     alert(`Added ${item.name} to cart!`);
     removeFromWishlist(item.id);
   };
 
-  // Delete account handler (not connected to backend)
   const handleDeleteAccount = () => {
     if (
       window.confirm(
@@ -81,7 +186,7 @@ export default function UserDashboardPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center bg-[#fafbfc]">
         <div className="text-xl">Loading...</div>
       </main>
     );
@@ -89,31 +194,17 @@ export default function UserDashboardPage() {
 
   if (error) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center bg-[#fafbfc]">
         <div className="text-xl text-red-600">{error}</div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-[#fafbfc]">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 flex gap-8">
         {/* Sidebar */}
-        <aside
-          className="
-            w-72
-            bg-white
-            rounded-2xl
-            border
-            border-gray-300
-            p-6
-            flex flex-col
-            gap-2
-            transition
-            duration-300
-            ease-in-out
-          "
-        >
+        <aside className="w-72 bg-white rounded-2xl border border-gray-300 p-6 flex flex-col gap-2">
           <nav className="flex flex-col gap-1">
             {menu.map((item) => (
               <button
@@ -126,7 +217,7 @@ export default function UserDashboardPage() {
                       ? "bg-black text-white"
                       : item.id === "delete"
                       ? "text-red-600 hover:bg-red-100"
-                      : "text-gray-700 hover:bg-gray-200"
+                      : "text-gray-700 hover:bg-gray-100"
                   }
                 `}
               >
@@ -156,6 +247,8 @@ export default function UserDashboardPage() {
                 profile={profile}
                 onUpdate={handleProfileUpdate}
                 loading={loading}
+                refreshToken={refreshToken}
+                router={router}
               />
             )}
 
@@ -237,12 +330,12 @@ export default function UserDashboardPage() {
                 {wishlistItems.length === 0 ? (
                   <div className="text-center py-10">
                     <p className="text-gray-600">Your wishlist is empty.</p>
-                    <a
+                    <Link
                       href="/shop"
                       className="inline-block mt-4 px-6 py-2 bg-black text-white rounded-full hover:bg-gray-900 transition"
                     >
                       CONTINUE SHOPPING
-                    </a>
+                    </Link>
                   </div>
                 ) : (
                   <div>
@@ -264,13 +357,15 @@ export default function UserDashboardPage() {
                         >
                           <div className="aspect-w-1 aspect-h-1 bg-gray-200">
                             {item.imageUrl ? (
-                              <img
+                              <Image
                                 src={item.imageUrl}
                                 alt={item.name}
-                                className="w-full h-[200px] object-cover"
+                                width={200}
+                                height={200}
+                                className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-[200px] bg-gray-200 flex items-center justify-center">
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                                 <span className="text-gray-400">No image</span>
                               </div>
                             )}
@@ -327,27 +422,38 @@ export default function UserDashboardPage() {
 }
 
 // --- Inline EditProfileForm ---
+interface EditProfileFormProps {
+  profile: UserProfile;
+  onUpdate: (data: UserProfile) => void;
+  loading: boolean;
+  refreshToken: () => Promise<string | null>;
+  router: any;
+}
+
 function EditProfileForm({
   profile,
   onUpdate,
   loading,
-}: {
-  profile: any;
-  onUpdate: (data: any) => void;
-  loading: boolean;
-}) {
+  refreshToken,
+  router
+}: EditProfileFormProps) {
+  // Combine first and last name for the "Name" field
+  const initialName =
+    (profile.firstName || "") +
+    ((profile.lastName) ? " " + profile.lastName : "");
+
   const [formData, setFormData] = useState({
-    name: profile.name || "",
+    name: initialName,
     email: profile.email || "",
-    phone_number: profile.phone_number || "",
+    phoneNumber: profile.phoneNumber || "",
     address: profile.address || "",
     bio: profile.bio || "",
     password: "",
-    profile_image_url: profile.profile_image_url || "",
+    profileImageUrl: profile.profileImageUrl || "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>(profile.profile_image_url || "");
+  const [imagePreview, setImagePreview] = useState<string>(profile.profileImageUrl || "");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleChange = (
@@ -360,7 +466,6 @@ function EditProfileForm({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -369,15 +474,84 @@ function EditProfileForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Split name into first and last for backend
+  function splitName(fullName: string) {
+    const parts = fullName.trim().split(" ");
+    const firstName = parts[0] || "";
+    const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "";
+    return { firstName, lastName };
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    onUpdate({
-      ...profile,
-      ...formData,
-      profile_image_url: imagePreview,
-    });
+    let token = AuthController.getToken();
+    if (!token) {
+      setError("No authentication token found");
+      setSaving(false);
+      router.push("/login");
+      return;
+    }
+    const { firstName, lastName } = splitName(formData.name);
+    try {
+      let res = await fetch(`${API_BASE_URL}/user/me`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bio: formData.bio,
+          firstName,
+          lastName,
+          profileImageUrl: imagePreview || null,
+          password: formData.password || undefined,
+        }),
+        credentials: "include",
+      });
+
+      // If unauthorized or signature error, try refresh
+      if (res.status === 401 || res.status === 422) {
+        token = await refreshToken();
+        if (!token) {
+          router.push("/login");
+          return;
+        }
+        res = await fetch(`${API_BASE_URL}/user/me`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            bio: formData.bio,
+            firstName,
+            lastName,
+            profileImageUrl: imagePreview || null,
+            password: formData.password || undefined,
+          }),
+          credentials: "include",
+        });
+      }
+
+      if (!res.ok) throw new Error("Failed to update profile");
+      const data = await res.json();
+      if (data.success) {
+        onUpdate({
+          ...profile,
+          ...formData,
+          firstName,
+          lastName,
+          profileImageUrl: imagePreview,
+        });
+        alert("Profile updated!");
+      } else {
+        setError(data.message || "Failed to update profile");
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to update profile");
+    }
     setSaving(false);
   };
 
@@ -388,9 +562,11 @@ function EditProfileForm({
       <div className="flex flex-col items-center mb-6">
         <div className="w-24 h-24 bg-gray-100 rounded-full overflow-hidden mb-2 flex items-center justify-center border border-gray-300">
           {imagePreview ? (
-            <img
+            <Image
               src={imagePreview}
               alt="Profile"
+              width={100}
+              height={100}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -398,7 +574,7 @@ function EditProfileForm({
           )}
         </div>
         <label>
-          <span className="bg-black text-white px-4 py-2 rounded text-sm font-semibold cursor-pointer hover:bg-gray-700 transition">
+          <span className="bg-[#bfa76a] text-white px-4 py-2 rounded-full text-sm font-semibold cursor-pointer hover:bg-[#a58d4b] transition">
             Change Photo
             <input
               type="file"
@@ -439,10 +615,10 @@ function EditProfileForm({
       <div>
         <label className="block font-medium mb-1">Phone Number</label>
         <input
-          name="phone_number"
+          name="phoneNumber"
           type="tel"
           placeholder="Your phone number"
-          value={formData.phone_number}
+          value={formData.phoneNumber}
           onChange={handleChange}
           className="border px-4 py-2 rounded w-full placeholder-gray-400"
         />
@@ -484,7 +660,7 @@ function EditProfileForm({
       </div>
       <button
         type="submit"
-        className="w-fit px-12 py-3 bg-black text-white rounded-full font-semibold tracking-wide text-lg hover:bg-gray-700 transition"
+        className="w-fit px-12 py-3 bg-[#bfa76a] text-white rounded-full font-semibold tracking-wide text-lg hover:bg-[#a58d4b] transition"
         disabled={saving || loading}
       >
         {saving ? "Saving..." : "Save Changes"}
