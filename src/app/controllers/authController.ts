@@ -117,17 +117,17 @@ export class AuthController {
   
   // Logout user
   static logout(): void {
-    localStorage.removeItem('jwt');
+    localStorage.removeItem('authToken');
   }
   
   // Check if user is authenticated
   static isAuthenticated(): boolean {
-    return !!localStorage.getItem('jwt');
+    return !!localStorage.getItem('authToken');
   }
   
   // Get authentication token
   static getToken(): string | null {
-    return localStorage.getItem('jwt');
+    return localStorage.getItem('authToken');
   }
   
   // Get current user profile
@@ -142,12 +142,13 @@ export class AuthController {
         };
       }
       
-      const response = await fetch(`${API_BASE_URL}/profile`, {
+      const response = await fetch(`${API_BASE_URL}/users/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
       
       const data = await response.json();
