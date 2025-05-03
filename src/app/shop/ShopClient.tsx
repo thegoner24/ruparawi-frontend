@@ -26,11 +26,31 @@ interface Product {
 }
 
 interface ShopClientProps {
-  products: Product[];
   categories: string[];
 }
 
-const ShopClient: React.FC<ShopClientProps> = ({ products, categories }) => {
+const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    fetch('https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products', { cache: 'no-store' })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch products');
+        return res.json();
+      })
+      .then(data => {
+        setProducts(data.products || data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortOption, setSortOption] = useState("featured");
@@ -101,13 +121,22 @@ const ShopClient: React.FC<ShopClientProps> = ({ products, categories }) => {
 
   return (
     <section className="container mx-auto px-4">
+      {/* Loader */}
+      {loading && (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+        </div>
+      )}
+      {/* Error state */}
+      {error && (
+        <div className="text-red-500 py-8 text-center">{error}</div>
+      )}
       {/* Cart notification */}
       {cartNotification && (
         <div className="fixed top-6 right-6 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
           Added to cart!
         </div>
       )}
-
       {/* Category filter and sort dropdown (single context) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex gap-2">

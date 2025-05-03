@@ -202,24 +202,21 @@ export default function UserDashboardPage() {
 
   return (
     <main className="min-h-screen bg-[#fafbfc]">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 flex gap-8">
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-8">
         {/* Sidebar */}
-        <aside className="w-72 bg-white rounded-2xl border border-gray-300 p-6 flex flex-col gap-2">
-          <nav className="flex flex-col gap-1">
+        <aside className="w-full lg:w-72 bg-white rounded-2xl border border-gray-300 p-6 flex flex-row lg:flex-col gap-2 mb-8 lg:mb-0">
+          <nav className="flex flex-row lg:flex-col gap-1 w-full">
             {menu.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition
-                  ${
-                    activeSection === item.id
-                      ? "bg-black text-white"
-                      : item.id === "delete"
-                      ? "text-red-600 hover:bg-red-100"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }
-                `}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition w-full ${
+                  activeSection === item.id
+                    ? "bg-gradient-to-r from-[#bfa76a] to-[#e0cba8] text-white shadow-lg"
+                    : item.id === "delete"
+                    ? "text-red-600 hover:bg-red-100"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
@@ -230,17 +227,37 @@ export default function UserDashboardPage() {
 
         {/* Main content */}
         <div className="flex-1">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-normal text-black mb-2 tracking-tight">
-              My Account
-            </h1>
-            <p className="text-gray-600">
-              Manage your profile, view order history, and manage your wishlist.
-            </p>
+          {/* Dashboard Header */}
+          <div className="mb-8 flex items-center gap-6 bg-gradient-to-r from-[#f6f3ea] to-[#e0cba8] rounded-2xl p-8 shadow">
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100 flex items-center justify-center">
+              {profile?.profileImageUrl ? (
+                <Image src={profile.profileImageUrl} alt="Avatar" width={80} height={80} className="w-full h-full object-cover" />
+              ) : (
+                <HiUser className="w-12 h-12 text-gray-400" />
+              )}
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-[#bfa76a] mb-1">Welcome, {profile?.firstName || 'User'}!</h1>
+              <p className="text-gray-700 text-lg">Manage your account, orders, and wishlist below.</p>
+            </div>
           </div>
 
-          <div className="bg-white shadow rounded-lg overflow-hidden mb-8 p-8">
+          {/* Analytics Section (optional for user) */}
+          <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+              <h2 className="text-lg font-semibold text-[#bfa76a] mb-4">Order Stats</h2>
+              {/* You can use a chart here if you want, or just a stat */}
+              <div className="text-4xl font-bold text-black mb-2">{orders.length}</div>
+              <div className="text-gray-500">Total Orders</div>
+            </div>
+            <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+              <h2 className="text-lg font-semibold text-[#bfa76a] mb-4">Wishlist Items</h2>
+              <div className="text-4xl font-bold text-black mb-2">{wishlistItems.length}</div>
+              <div className="text-gray-500">Saved Products</div>
+            </div>
+          </div>
+
+          <div className="bg-white shadow rounded-2xl overflow-hidden mb-8 p-8">
             {/* Edit Profile */}
             {activeSection === "profile" && profile && (
               <EditProfileForm
@@ -255,21 +272,17 @@ export default function UserDashboardPage() {
             {/* Order History */}
             {activeSection === "orders" && (
               <div>
-                <h2 className="text-2xl font-normal text-black mb-6">
-                  Order History
-                </h2>
+                <h2 className="text-2xl font-normal text-black mb-6">Order History</h2>
                 {orders.length === 0 ? (
                   <div className="text-center py-10">
-                    <p className="text-gray-600">
-                      You haven't placed any orders yet.
-                    </p>
+                    <p className="text-gray-600">You haven't placed any orders yet.</p>
                   </div>
                 ) : (
                   <div className="space-y-8">
                     {orders.map((order) => (
                       <div
                         key={order.id}
-                        className="border rounded-lg overflow-hidden shadow-sm"
+                        className="border rounded-xl overflow-hidden shadow-sm bg-[#fafbfc]"
                       >
                         <div className="bg-gray-50 p-6 border-b flex flex-wrap justify-between items-center gap-4">
                           <div>
@@ -310,7 +323,7 @@ export default function UserDashboardPage() {
                           </ul>
                         </div>
                         <div className="p-6 bg-gray-50 border-t flex justify-end">
-                          <button className="px-4 py-2 text-sm border border-black text-black hover:bg-black hover:text-white transition rounded-full">
+                          <button className="px-4 py-2 text-sm border border-[#bfa76a] text-[#bfa76a] hover:bg-[#bfa76a] hover:text-white transition rounded-full">
                             View Details
                           </button>
                         </div>
@@ -324,15 +337,13 @@ export default function UserDashboardPage() {
             {/* Wishlist */}
             {activeSection === "wishlist" && (
               <div>
-                <h2 className="text-2xl font-normal text-black mb-6">
-                  My Wishlist
-                </h2>
+                <h2 className="text-2xl font-normal text-black mb-6">My Wishlist</h2>
                 {wishlistItems.length === 0 ? (
                   <div className="text-center py-10">
                     <p className="text-gray-600">Your wishlist is empty.</p>
                     <Link
                       href="/shop"
-                      className="inline-block mt-4 px-6 py-2 bg-black text-white rounded-full hover:bg-gray-900 transition"
+                      className="inline-block mt-4 px-6 py-2 bg-gradient-to-r from-[#bfa76a] to-[#e0cba8] text-white rounded-full hover:scale-105 transition"
                     >
                       CONTINUE SHOPPING
                     </Link>
@@ -341,10 +352,8 @@ export default function UserDashboardPage() {
                   <div>
                     <div className="mb-4 flex justify-end">
                       <button
-                        onClick={() =>
-                          wishlistItems.forEach((item) => addToCart(item))
-                        }
-                        className="px-4 py-2 bg-black text-white text-sm rounded-full hover:bg-gray-900 transition"
+                        onClick={() => wishlistItems.forEach((item) => addToCart(item))}
+                        className="px-4 py-2 bg-gradient-to-r from-[#bfa76a] to-[#e0cba8] text-white text-sm rounded-full hover:scale-105 transition"
                       >
                         ADD ALL TO CART
                       </button>
@@ -353,7 +362,7 @@ export default function UserDashboardPage() {
                       {wishlistItems.map((item) => (
                         <div
                           key={item.id}
-                          className="border rounded-lg overflow-hidden shadow-sm"
+                          className="border rounded-xl overflow-hidden shadow-sm bg-[#fafbfc] hover:shadow-lg transition"
                         >
                           <div className="aspect-w-1 aspect-h-1 bg-gray-200">
                             {item.imageUrl ? (
@@ -370,19 +379,19 @@ export default function UserDashboardPage() {
                               </div>
                             )}
                           </div>
-                          <div className="p-4">
+                          <div className="p-6">
                             <h3 className="font-medium mb-2">{item.name}</h3>
                             <p className="text-lg mb-4">{item.price}</p>
                             <div className="flex flex-col gap-2">
                               <button
                                 onClick={() => addToCart(item)}
-                                className="w-full py-2 bg-black text-white text-sm rounded-full hover:bg-gray-900 transition"
+                                className="w-full py-2 bg-gradient-to-r from-[#bfa76a] to-[#e0cba8] text-white text-sm rounded-full hover:scale-105 transition"
                               >
                                 ADD TO CART
                               </button>
                               <button
                                 onClick={() => removeFromWishlist(item.id)}
-                                className="w-full py-2 border border-black text-black text-sm rounded-full hover:bg-gray-100 transition"
+                                className="w-full py-2 border border-[#bfa76a] text-[#bfa76a] text-sm rounded-full hover:bg-[#f6f3ea] transition"
                               >
                                 REMOVE
                               </button>
