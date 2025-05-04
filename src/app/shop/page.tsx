@@ -1,14 +1,30 @@
 import Link from "next/link";
 import ShopClient from "./ShopClient";
 
-// Product categories
-const categories = [
-  "All",
-  "Jackets",
-  "Shirts",
-  "Accessories",
-  "Limited Edition"
-];
+// Fetch categories from API (Next.js app directory, server component)
+async function getCategories() {
+  try {
+    const res = await fetch('https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products/category', { cache: 'no-store' });
+    if (!res.ok) throw new Error('Failed to fetch categories');
+    const json = await res.json();
+    // Recursively extract all category names (including subcategories)
+    function extractNames(categories: any[]): string[] {
+      let names: string[] = [];
+      for (const cat of categories) {
+        names.push(cat.name);
+        if (Array.isArray(cat.subcategories) && cat.subcategories.length > 0) {
+          names = names.concat(extractNames(cat.subcategories));
+        }
+      }
+      return names;
+    }
+    const categoriesArr = json?.data?.categories ? extractNames(json.data.categories) : [];
+    return ['All', ...categoriesArr];
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return ['All'];
+  }
+}
 
 // SSR page component
 type Product = {
@@ -22,7 +38,10 @@ type Product = {
   [key: string]: any;
 };
 
-export default function ShopPage() {
+export default async function ShopPage() {
+  console.log('ShopPage rendered');
+  // Fetch categories on server
+  const categories = await getCategories();
   // Only pass categories; product fetching is now client-side
   return (
     <div className="min-h-screen bg-white">
