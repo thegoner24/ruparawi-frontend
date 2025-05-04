@@ -1,4 +1,5 @@
-import { FaBoxOpen, FaHeart, FaUser, FaBell } from "react-icons/fa";
+import { FaBoxOpen, FaHeart, FaUser, FaBell, FaMapMarkerAlt } from "react-icons/fa";
+// import AddressCard from "./AddressCard"; // Not needed here
 
 const stats = [
   {
@@ -16,11 +17,11 @@ const stats = [
     color: "bg-pink-100"
   },
   {
-    label: "Account",
-    value: 1,
-    icon: <FaUser className="text-3xl text-yellow-500" />,
-    href: "/dashboard/buyer/profile",
-    color: "bg-yellow-100"
+    label: "Addresses",
+    value: 2, // Example count, replace with real data if available
+    icon: <FaMapMarkerAlt className="text-3xl text-green-500" />,
+    href: "/dashboard/buyer/address",
+    color: "bg-green-100"
   },
   {
     label: "Notifications",
@@ -67,6 +68,7 @@ export default function BuyerDashboard() {
           ))}
         </ul>
       </div>
+
     </div>
   );
 }

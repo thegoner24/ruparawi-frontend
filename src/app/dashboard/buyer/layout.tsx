@@ -16,6 +16,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard/buyer/wishlist">
             <span className="text-left px-3 py-2 rounded hover:bg-[#f0e9d6] block">Wishlist</span>
           </Link>
+          <Link href="/dashboard/buyer/address">
+            <span className="text-left px-3 py-2 rounded hover:bg-[#f0e9d6] block">Address</span>
+          </Link>
           <Link href="  /dashboard/buyer/profile">
             <span className="text-left px-3 py-2 rounded hover:bg-[#f0e9d6] block">Profile</span>
           </Link>
