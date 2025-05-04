@@ -29,6 +29,7 @@ export default function ProductDetail() {
   const { productId } = useParams();
   
   const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [vendorName, setVendorName] = useState<string | null>(null);
   // Track image load error to prevent infinite reload
   const [imgError, setImgError] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
@@ -52,11 +53,10 @@ const [error, setError] = useState<string | null>(null);
         if (!res.ok) throw new Error('Failed to fetch product');
         return res.json();
       })
-      .then(data => {
-        console.log('Fetched product data:', data);
+      .then((data) => {
         if (data && data.product) {
-          // Parse tags and sustainability_attributes if needed
           let prod = { ...data.product };
+          // Parse tags and sustainability_attributes if needed
           if (typeof prod.tags === 'string') {
             try { prod.tags = JSON.parse(prod.tags.replace(/'/g, '"')); } catch { prod.tags = []; }
           }
@@ -82,6 +82,24 @@ const [error, setError] = useState<string | null>(null);
             }
           }
           setProduct(prod);
+          // Set vendor name if present
+          if (prod.business_name) {
+            setVendorName(prod.business_name);
+          } else if (prod.vendor_id) {
+            fetch(`https://mad-adriane-dhanapersonal-9be85724.koyeb.app/admin/vendors/${prod.vendor_id}`)
+              .then(res => res.ok ? res.json() : null)
+              .then(data => {
+                if (data && data.vendor && data.vendor.name) {
+                  setVendorName(data.vendor.name);
+                } else {
+                  setVendorName(null);
+                }
+              })
+              .catch(() => setVendorName(null));
+          } else {
+            setVendorName(null);
+          }
+          setProduct(prod);
           setError(null);
         } else {
           setProduct(null);
@@ -104,10 +122,48 @@ const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     fetch('https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products')
       .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        const products = Array.isArray(data.products) ? data.products : data;
-        console.log('Fetched all products:', products);
-        setAllProducts(products);
+      .then(async data => {
+        let products = Array.isArray(data.products) ? data.products : data;
+        // Parse tags for matching
+        products = products.map((prod: any) => {
+          const p = { ...prod };
+          if (typeof p.tags === 'string') {
+            try { p.tags = JSON.parse(p.tags.replace(/'/g, '"')); } catch { p.tags = []; }
+          }
+          return p;
+        });
+        // Fetch details for each product (in parallel)
+        const detailedProducts = await Promise.all(products.map(async (prod: any) => {
+          try {
+            const res = await fetch(`https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products/${prod.id}`);
+            if (!res.ok) return prod;
+            const detail = await res.json();
+            if (detail && detail.product) {
+              let p = { ...prod, ...detail.product };
+              // Parse tags and sustainability_attributes if needed
+              if (typeof p.tags === 'string') {
+                try { p.tags = JSON.parse(p.tags.replace(/'/g, '"')); } catch { p.tags = []; }
+              }
+              if (typeof p.sustainability_attributes === 'string') {
+                try { p.sustainability_attributes = JSON.parse(p.sustainability_attributes.replace(/'/g, '"')); } catch { p.sustainability_attributes = []; }
+              }
+              if (typeof p.stock_quantity === 'string') {
+                const n = Number(p.stock_quantity);
+                p.stock_quantity = isNaN(n) ? undefined : n;
+              }
+              if (typeof p.min_order_quantity === 'string') {
+                const n = Number(p.min_order_quantity);
+                p.min_order_quantity = isNaN(n) ? undefined : n;
+              }
+              return p;
+            }
+            return prod;
+          } catch {
+            return prod;
+          }
+        }));
+        console.log('Fetched all related products with details:', detailedProducts);
+        setAllProducts(detailedProducts);
       })
       .catch((err) => {
         console.error('Error fetching all products:', err);
@@ -169,61 +225,111 @@ if (!product) {
       
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* No images field in new schema. Show a placeholder image only. */}
+          {/* Product Images Display */}
           <div className="space-y-4">
+            {/* Main Image */}
             <div className="relative aspect-square w-full h-96 overflow-hidden bg-[#f8f5f0] rounded-lg border border-[#e8d8b9] flex items-center justify-center">
-              {/* Product image with error handling to prevent infinite reload */}
-<img
-  key={imgError ? 'placeholder' : (typeof product?.primary_image_url === 'string' ? product.primary_image_url : 'placeholder')}
-  src={imgError ? '/placeholder.png' : (typeof product?.primary_image_url === 'string' ? product.primary_image_url : '/placeholder.png')}
-  alt={product?.name || 'Product'}
-  className="w-full h-full object-contain rounded bg-gray-100 transition-transform duration-300 ease-in-out hover:scale-125 cursor-zoom-in"
-  onError={() => {
-    if (!imgError) setImgError(true);
-  }}
-  onClick={() => {
-    if (!imgError && typeof product?.primary_image_url === 'string') setShowImageModal(true);
-  }}
-  style={{ cursor: imgError ? 'default' : 'zoom-in' }}
-/>
-
-{/* Modal for full image view */}
-{showImageModal && !imgError && typeof product?.primary_image_url === 'string' && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setShowImageModal(false)}>
-    <div className="relative max-w-3xl w-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
-      <img
-        src={product.primary_image_url}
-        alt={product?.name || 'Product'}
-        className="max-h-[80vh] max-w-full object-contain rounded shadow-lg"
-      />
-      <button
-        className="absolute top-2 right-2 text-white bg-black bg-opacity-60 rounded-full p-2 hover:bg-opacity-80 focus:outline-none"
-        onClick={() => setShowImageModal(false)}
-        aria-label="Close full image"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-  </div>
-)}
+              {(() => {
+                // Get all images from imagesArray, images, or fallback
+                let images: string[] = [];
+                if (Array.isArray(product?.imagesArray) && product.imagesArray.length > 0) {
+                  images = product.imagesArray.map((img: any) => img.image_url).filter((url: string) => !!url);
+                } else if (Array.isArray(product?.images) && product.images.length > 0) {
+                  images = product.images.filter((url: string) => !!url);
+                } else if (typeof product?.primary_image_url === 'string') {
+                  images = [product.primary_image_url];
+                } else if (typeof product?.image === 'string') {
+                  images = [product.image];
+                }
+                const mainImage = images[selectedImage] || '/placeholder.png';
+                return (
+                  <img
+                    key={mainImage}
+                    src={imgError ? '/placeholder.png' : mainImage}
+                    alt={product?.name || 'Product'}
+                    className="w-full h-full object-contain rounded bg-gray-100 transition-transform duration-300 ease-in-out hover:scale-125 cursor-zoom-in"
+                    onError={() => {
+                      if (!imgError) setImgError(true);
+                    }}
+                    onClick={() => {
+                      if (!imgError && mainImage !== '/placeholder.png') setShowImageModal(true);
+                    }}
+                    style={{ cursor: imgError ? 'default' : 'zoom-in' }}
+                  />
+                );
+              })()}
+              {/* Modal for full image view */}
+              {showImageModal && (() => {
+                let images: string[] = [];
+                if (Array.isArray(product?.imagesArray) && product.imagesArray.length > 0) {
+                  images = product.imagesArray.map((img: any) => img.image_url).filter((url: string) => !!url);
+                } else if (Array.isArray(product?.images) && product.images.length > 0) {
+                  images = product.images.filter((url: string) => !!url);
+                } else if (typeof product?.primary_image_url === 'string') {
+                  images = [product.primary_image_url];
+                } else if (typeof product?.image === 'string') {
+                  images = [product.image];
+                }
+                const mainImage = images[selectedImage] || '/placeholder.png';
+                return !imgError && mainImage !== '/placeholder.png' ? (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setShowImageModal(false)}>
+                    <div className="relative max-w-3xl w-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
+                      <img
+                        src={mainImage}
+                        alt={product?.name || 'Product'}
+                        className="max-h-[80vh] max-w-full object-contain rounded shadow-lg"
+                      />
+                      <button
+                        className="absolute top-2 right-2 text-white bg-black bg-opacity-60 rounded-full p-2 hover:bg-opacity-80 focus:outline-none"
+                        onClick={() => setShowImageModal(false)}
+                        aria-label="Close full image"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
             </div>
+            {/* Thumbnails */}
+            {(() => {
+              let images: string[] = [];
+              if (Array.isArray(product?.imagesArray) && product.imagesArray.length > 0) {
+                images = product.imagesArray.map((img: any) => img.image_url).filter((url: string) => !!url);
+              } else if (Array.isArray(product?.images) && product.images.length > 0) {
+                images = product.images.filter((url: string) => !!url);
+              }
+              return images.length > 1 ? (
+                <div className="flex gap-2 mt-2">
+                  {images.map((img, idx) => (
+                    <img
+                      key={`${img}-${idx}`}
+                      src={img}
+                      alt={`Thumbnail ${idx + 1}`}
+                      className={`w-20 h-20 object-contain rounded border cursor-pointer transition ring-2 ${selectedImage === idx ? 'ring-yellow-400 border-yellow-400' : 'ring-transparent border-gray-200 hover:ring-yellow-300'}`}
+                      onClick={() => {
+                        setSelectedImage(idx);
+                        setImgError(false);
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : null;
+            })()}
           </div>
           
           {/* Product Info */}
           <div className="flex flex-col">
             {/* Product Title and Price */}
             <h1 className="text-3xl font-bold mb-2 text-black">{product.name}</h1>
-            {product.business_name ? (
-              <div className="mb-2 text-sm text-gray-500">Sold by: <span className="font-medium text-black">{product.business_name}</span></div>
-            ) : product.vendor_id ? (
-              <div className="mb-2 text-sm text-gray-500">Sold by: <span className="font-medium text-black">Vendor #{product.vendor_id}</span></div>
-            ) : null}
+            {vendorName && (
+              <div className="mb-2 text-sm text-gray-500">Sold by: <span className="font-medium text-black">{vendorName}</span></div>
+            )}
             <div className="flex items-center mb-4">
               {/* No rating/review fields in new schema. */}
-              
-              <span className="text-2xl font-bold text-black">
+              <span className="text-2xl font-bold text-black ml-4">
                 {typeof product.price === 'number'
                   ? product.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
                   : 'Price not available'}
@@ -265,7 +371,7 @@ if (!product) {
               <div className="flex flex-col gap-1">
                 <span>Stock: <b>{typeof product.stock_quantity === 'number' ? product.stock_quantity : 'N/A'}</b></span>
                 <span>Minimum Order: <b>{typeof product.min_order_quantity === 'number' ? product.min_order_quantity : 'N/A'}</b></span>
-                <span>Status: <b className={product.is_active ? 'text-green-600' : 'text-red-600'}>{product.is_active ? 'Active' : 'Inactive'}</b></span>
+                <span>Status: <b className="text-green-600">Available</b></span>
               </div>
             </div>
             
@@ -317,30 +423,31 @@ if (!product) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {Array.isArray(allProducts) && allProducts.length > 0 ? (
             allProducts
-              .filter((relatedProduct: ProductDetail) => relatedProduct.id && (!product || relatedProduct.id !== (product as any).id))
-              .map((relatedProduct: ProductDetail) => {
-                // Parse tags if needed
-                let tags: string[] = [];
+              .filter((relatedProduct: ProductDetail) => {
+                if (!relatedProduct.id || !product || relatedProduct.id === product.id) return false;
+                // Parse tags for both products
+                let currentTags: string[] = [];
+                let compareTags: string[] = [];
+                if (Array.isArray(product.tags)) {
+                  currentTags = product.tags;
+                } else if (typeof product.tags === 'string') {
+                  try { currentTags = JSON.parse(product.tags.replace(/'/g, '"')); } catch { currentTags = []; }
+                }
                 if (Array.isArray(relatedProduct.tags)) {
-                  tags = relatedProduct.tags;
+                  compareTags = relatedProduct.tags;
                 } else if (typeof relatedProduct.tags === 'string') {
-                  try {
-                    tags = JSON.parse(relatedProduct.tags.replace(/'/g, '"'));
-                  } catch {
-                    tags = [];
-                  }
+                  try { compareTags = JSON.parse(relatedProduct.tags.replace(/'/g, '"')); } catch { compareTags = []; }
                 }
-                // Parse sustainability_attributes if needed
-                let sustainability: string[] = [];
-                if (Array.isArray(relatedProduct.sustainability_attributes)) {
-                  sustainability = relatedProduct.sustainability_attributes;
-                } else if (typeof relatedProduct.sustainability_attributes === 'string') {
-                  try {
-                    sustainability = JSON.parse(relatedProduct.sustainability_attributes.replace(/'/g, '"'));
-                  } catch {
-                    sustainability = [];
-                  }
-                }
+                // Check for at least one common tag
+                return currentTags.some(tag => compareTags.includes(tag));
+              })
+              .map((relatedProduct: ProductDetail) => {
+                // Use already parsed fields
+                const tags = Array.isArray(relatedProduct.tags) ? relatedProduct.tags : [];
+                const sustainability = Array.isArray(relatedProduct.sustainability_attributes) ? relatedProduct.sustainability_attributes : [];
+                const stock = typeof relatedProduct.stock_quantity === 'number' ? relatedProduct.stock_quantity : 'N/A';
+                const minOrder = typeof relatedProduct.min_order_quantity === 'number' ? relatedProduct.min_order_quantity : 'N/A';
+                console.log('[RELATED PRODUCT DEBUG]', {relatedProduct, tags, sustainability, stock, minOrder});
                 return (
                   <Link href={`/shop/${relatedProduct.id}`} key={relatedProduct.id} className="group border rounded-lg p-4 bg-white shadow-sm hover:shadow-lg transition-shadow block">
                     <div className="flex flex-col items-start">
@@ -374,12 +481,12 @@ if (!product) {
                             ? relatedProduct.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
                             : 'Price not available'}
                         </span>
-                        <span className={relatedProduct.is_active ? 'text-green-600 text-xs' : 'text-red-600 text-xs'}>
-                          {relatedProduct.is_active ? 'Active' : 'Inactive'}
+                        <span className="text-green-600 text-xs">
+                          Available
                         </span>
                       </div>
-                      <div className="text-xs mt-2">Stock: <b>{typeof relatedProduct.stock_quantity === 'number' ? relatedProduct.stock_quantity : 'N/A'}</b></div>
-                      <div className="text-xs">Min Order: <b>{typeof relatedProduct.min_order_quantity === 'number' ? relatedProduct.min_order_quantity : 'N/A'}</b></div>
+                      <div className="text-xs mt-2">Stock: <b>{stock !== undefined && stock !== null ? stock : 'N/A'}</b></div>
+                      <div className="text-xs">Min Order: <b>{minOrder !== undefined && minOrder !== null ? minOrder : 'N/A'}</b></div>
                     </div>
                   </Link>
                 );
