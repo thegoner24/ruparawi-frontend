@@ -35,7 +35,7 @@ export interface AuthResponse {
 }
 
 // API URL
-const API_BASE_URL = 'https://mad-adriane-dhanapersonal-9be85724.koyeb.app';
+export const API_BASE_URL = 'https://mad-adriane-dhanapersonal-9be85724.koyeb.app';
 
 // Controller class for authentication
 export class AuthController {

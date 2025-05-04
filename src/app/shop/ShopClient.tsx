@@ -2,6 +2,8 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import CartController from "../controllers/cartController";
+import { addToWishlist, removeFromWishlist } from "../controllers/wishlistController";
+import { useAuth } from "@/app/context/AuthContext";
 
 // Define cart item type
 interface CartItem {
@@ -29,12 +31,15 @@ interface ShopClientProps {
   categories: string[];
 }
 
+const PRODUCTS_PER_PAGE = 12;
+
 const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('Fetching products...');
     setLoading(true);
     setError(null);
     fetch('https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products', { cache: 'no-store' })
@@ -81,17 +86,28 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
   };
 
   // Function to handle wishlist button click
-  const handleWishlist = (e: React.MouseEvent, productId: string) => {
+  const { token } = useAuth();
+  const handleWishlist = async (e: React.MouseEvent, productId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    setWishlist(prev => {
-      if (prev.includes(productId)) {
-        return prev.filter(id => id !== productId);
+    if (!token) {
+      alert('You must be logged in to use the wishlist.');
+      return;
+    }
+    try {
+      if (wishlist.includes(productId)) {
+        await removeFromWishlist(Number(productId), token);
+        setWishlist(prev => prev.filter(id => id !== productId));
       } else {
-        return [...prev, productId];
+        await addToWishlist(Number(productId), token);
+        setWishlist(prev => [...prev, productId]);
       }
-    });
+    } catch (err) {
+      alert('Failed to update wishlist.');
+      console.error(err);
+    }
   };
+
 
   // Function to close quick view modal
   const closeQuickView = () => {
@@ -104,6 +120,9 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
     setCartNotification(true);
     setTimeout(() => setCartNotification(false), 3000);
   }, []);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Filter products by category
   const filteredProducts = selectedCategory === "All"
@@ -118,6 +137,15 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
     // Default: featured
     return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE);
+  const paginatedProducts = sortedProducts.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE);
+
+  // Reset to first page when filters/sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, sortOption]);
 
   return (
     <section className="container mx-auto px-4">
@@ -167,36 +195,50 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
 
       {/* Product grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {sortedProducts.map(product => (
-          <div key={product.id} className="border rounded-lg p-4 bg-white shadow hover:shadow-lg transition relative">
+        {paginatedProducts.map(product => (
+          <div key={product.id} className="group rounded-2xl p-0 bg-white shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-[#ede9dd] overflow-hidden flex flex-col">
             <Link href={`/shop/${product.id}`}
               className="block mb-2"
             >
-              <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded" />
+              <div className="relative w-full aspect-[4/5] min-h-[210px] flex items-end justify-center overflow-hidden bg-gradient-to-br from-[#f8f5f0] to-[#e7e2d1]">
+  <img
+  src={product.primary_image_url ?? product.image ?? '/placeholder.png'}
+  alt={product.name}
+  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 bg-gray-100 rounded-2xl"
+  onError={e => {
+    // Prevent infinite loop by checking a custom property
+    const img = e.target as HTMLImageElement;
+    if (!img.dataset.fallback) {
+      img.dataset.fallback = 'true';
+      img.src = '/placeholder.png';
+    }
+  }}
+/>
+  <button
+    onClick={e => handleWishlist(e, product.id)}
+    className={`absolute top-3 right-3 z-10 p-2 rounded-full shadow bg-white/80 hover:bg-[#f2e6c7] transition ${wishlist.includes(product.id) ? 'text-[#d4b572]' : 'text-gray-400'}`}
+    aria-label="Add to wishlist"
+  >
+    <svg className={`w-6 h-6 ${wishlist.includes(product.id) ? 'fill-[#d4b572]' : ''}`} fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  </button>
+              </div>
             </Link>
-            <div className="flex flex-col gap-1">
-              <h3 className="text-lg font-semibold">{product.name}</h3>
-              <span className="text-[#d4b572] font-bold text-xl">${product.price}</span>
+            <div className="flex flex-col gap-2 px-4 pb-4 pt-2 flex-1">
+              <h3 className="text-base font-semibold text-gray-900 line-clamp-2 min-h-[48px]">{product.name}</h3>
+              <span className="text-[#bfa76a] font-bold text-lg mb-1">{product.price?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })}</span>
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={e => handleQuickView(e, product)}
-                  className="text-xs underline text-gray-600 hover:text-black"
+                  className="text-xs px-3 py-1 rounded-full bg-[#f8f5f0] text-gray-700 hover:bg-[#ede9dd] hover:text-black transition font-medium shadow-sm border border-[#ede9dd]"
                 >
                   Quick View
-                </button>
-                <button
-                  onClick={e => handleWishlist(e, product.id)}
-                  className="ml-2"
-                  aria-label="Add to wishlist"
-                >
-                  <svg className={`w-5 h-5 ${wishlist.includes(product.id) ? 'text-[#d4b572] fill-[#d4b572]' : 'text-gray-700'}`} fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
                 </button>
               </div>
               <button
                 onClick={() => addToCart(product)}
-                className="mt-2 w-full bg-black text-white py-2 rounded hover:bg-gray-900"
+                className="mt-3 w-full bg-gradient-to-r from-[#bfa76a] to-[#e0cba8] text-white py-2 rounded-full font-semibold shadow hover:scale-105 transition-transform"
               >
                 Add to Cart
               </button>
@@ -204,6 +246,35 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8 gap-2">
+          <button
+            className="px-3 py-1 rounded border bg-white hover:bg-gray-100 disabled:opacity-50"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button
+              key={page}
+              className={`px-3 py-1 rounded border ${currentPage === page ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
+              onClick={() => setCurrentPage(page)}
+            >
+              {page}
+            </button>
+          ))}
+          <button
+            className="px-3 py-1 rounded border bg-white hover:bg-gray-100 disabled:opacity-50"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Quick View Modal */}
       {quickViewProduct && (
@@ -219,7 +290,9 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
               </svg>
             </button>
             <div className="flex flex-col md:flex-row gap-6">
-              <img src={quickViewProduct.image} alt={quickViewProduct.name} className="w-full md:w-1/2 h-56 object-cover rounded" />
+              <div className="w-full md:w-1/2 aspect-[4/5] min-h-[210px] flex items-end justify-center overflow-hidden bg-gradient-to-br from-[#f8f5f0] to-[#e7e2d1] rounded-2xl">
+  <img src={quickViewProduct.primary_image_url ?? quickViewProduct.image ?? '/placeholder.png'} alt={quickViewProduct.name} className="w-full h-full object-cover bg-gray-100 rounded-2xl" onError={e => { (e.target as HTMLImageElement).src = '/placeholder.png'; }} />
+</div>
               <div className="flex-1 flex flex-col">
                 <h2 className="text-2xl font-bold mb-2">{quickViewProduct.name}</h2>
                 <span className="text-[#d4b572] font-bold text-xl mb-2">${quickViewProduct.price}</span>

@@ -19,16 +19,19 @@ interface ProductDetail {
   min_order_quantity?: number;
   is_active?: boolean;
   image?: string;
+images?: string[];
   [key: string]: any;
 }
 
 // Product details will now be fetched from the API
 
 export default function ProductDetail() {
-  const params = useParams();
-  const productId = params.productId as string;
+  const { productId } = useParams();
   
   const [product, setProduct] = useState<ProductDetail | null>(null);
+  // Track image load error to prevent infinite reload
+  const [imgError, setImgError] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -43,7 +46,8 @@ const [error, setError] = useState<string | null>(null);
       return;
     }
     setLoading(true);
-    fetch(`https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products/${parseInt(productId, 10)}`)
+    const id = Array.isArray(productId) ? productId[0] : productId;
+    fetch(`https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products/${parseInt(id, 10)}`)
       .then((res: Response) => {
         if (!res.ok) throw new Error('Failed to fetch product');
         return res.json();
@@ -58,6 +62,24 @@ const [error, setError] = useState<string | null>(null);
           }
           if (typeof prod.sustainability_attributes === 'string') {
             try { prod.sustainability_attributes = JSON.parse(prod.sustainability_attributes.replace(/'/g, '"')); } catch { prod.sustainability_attributes = []; }
+          }
+          // Parse images field if present (stringified list of objects)
+          if (typeof prod.images === 'string') {
+            try {
+              // Attempt to convert single quotes to double quotes only for JSON keys/values
+              let imagesStr = prod.images
+                .replace(/\b(True|False|null)\b/g, (match: string) => match.toLowerCase()) // Python->JS bool/null
+                .replace(/'/g, '"');
+              const parsedImages = JSON.parse(imagesStr);
+              if (Array.isArray(parsedImages)) {
+                prod.imagesArray = parsedImages;
+                // Find primary image
+                const primary = parsedImages.find((img: any) => img.is_primary && img.image_url);
+                prod.primary_image_url = primary?.image_url || (parsedImages[0]?.image_url ?? undefined);
+              }
+            } catch (e) {
+              prod.imagesArray = [];
+            }
           }
           setProduct(prod);
           setError(null);
@@ -112,7 +134,10 @@ const [error, setError] = useState<string | null>(null);
     );
   }
   
-  if (!product) {
+  if (product) {
+  console.log('DEBUG Product for vendor display:', product);
+}
+if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
@@ -146,19 +171,55 @@ const [error, setError] = useState<string | null>(null);
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* No images field in new schema. Show a placeholder image only. */}
           <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden bg-[#f8f5f0] rounded-lg border border-[#e8d8b9] flex items-center justify-center">
-              <img 
-                src="/placeholder.png"
-                alt="No image"
-                className="w-1/2 h-1/2 object-contain opacity-40"
-              />
+            <div className="relative aspect-square w-full h-96 overflow-hidden bg-[#f8f5f0] rounded-lg border border-[#e8d8b9] flex items-center justify-center">
+              {/* Product image with error handling to prevent infinite reload */}
+<img
+  key={imgError ? 'placeholder' : (typeof product?.primary_image_url === 'string' ? product.primary_image_url : 'placeholder')}
+  src={imgError ? '/placeholder.png' : (typeof product?.primary_image_url === 'string' ? product.primary_image_url : '/placeholder.png')}
+  alt={product?.name || 'Product'}
+  className="w-full h-full object-contain rounded bg-gray-100 transition-transform duration-300 ease-in-out hover:scale-125 cursor-zoom-in"
+  onError={() => {
+    if (!imgError) setImgError(true);
+  }}
+  onClick={() => {
+    if (!imgError && typeof product?.primary_image_url === 'string') setShowImageModal(true);
+  }}
+  style={{ cursor: imgError ? 'default' : 'zoom-in' }}
+/>
+
+{/* Modal for full image view */}
+{showImageModal && !imgError && typeof product?.primary_image_url === 'string' && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setShowImageModal(false)}>
+    <div className="relative max-w-3xl w-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
+      <img
+        src={product.primary_image_url}
+        alt={product?.name || 'Product'}
+        className="max-h-[80vh] max-w-full object-contain rounded shadow-lg"
+      />
+      <button
+        className="absolute top-2 right-2 text-white bg-black bg-opacity-60 rounded-full p-2 hover:bg-opacity-80 focus:outline-none"
+        onClick={() => setShowImageModal(false)}
+        aria-label="Close full image"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+)}
             </div>
           </div>
           
           {/* Product Info */}
           <div className="flex flex-col">
             {/* Product Title and Price */}
-            <h1 className="text-3xl font-bold text-black mb-2">{product.name || "Product name not available"}</h1>
+            <h1 className="text-3xl font-bold mb-2 text-black">{product.name}</h1>
+            {product.business_name ? (
+              <div className="mb-2 text-sm text-gray-500">Sold by: <span className="font-medium text-black">{product.business_name}</span></div>
+            ) : product.vendor_id ? (
+              <div className="mb-2 text-sm text-gray-500">Sold by: <span className="font-medium text-black">Vendor #{product.vendor_id}</span></div>
+            ) : null}
             <div className="flex items-center mb-4">
               {/* No rating/review fields in new schema. */}
               
@@ -246,8 +307,6 @@ const [error, setError] = useState<string | null>(null);
               </svg>
               Add to Wishlist
             </button>
-            
-            
           </div>
         </div>
       </div>
@@ -287,10 +346,15 @@ const [error, setError] = useState<string | null>(null);
                     <div className="flex flex-col items-start">
                       <div className="w-full flex justify-center mb-2">
                         <img
-                          src={relatedProduct.image || '/placeholder.png'}
+                          src={relatedProduct.primary_image_url || relatedProduct.image || '/placeholder.png'}
                           alt={relatedProduct.name || 'Product'}
                           className="w-24 h-24 object-contain bg-gray-100 rounded mb-2"
-                          onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            if (img.src !== window.location.origin + '/placeholder.png' && !img.src.endsWith('/placeholder.png')) {
+                              img.src = '/placeholder.png';
+                            }
+                          }}
                         />
                       </div>
                       <h3 className="text-gray-900 font-medium text-lg mb-1">{relatedProduct.name || "Name not available"}</h3>

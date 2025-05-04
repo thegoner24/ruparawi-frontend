@@ -3,42 +3,236 @@ import React, { useState, useEffect } from "react";
 import { LineChart, BarChart, PieChart } from '@mui/x-charts';
 import { apiRequest, API_BASE_URL } from './apiClient';
 
-// --- Mock Orders Data ---
-const mockOrders = [
-  { id: 'ORD-1001', product: 'Eco Jacket', customer: 'Dewi S.', qty: 2, total: 1200000, date: '2025-05-01', status: 'Completed' },
-  { id: 'ORD-1002', product: 'Urban Shirt', customer: 'Budi P.', qty: 1, total: 450000, date: '2025-05-01', status: 'Pending' },
-  { id: 'ORD-1003', product: 'Canvas Tote', customer: 'Rina M.', qty: 3, total: 750000, date: '2025-04-30', status: 'Completed' },
-  { id: 'ORD-1004', product: 'Eco Jacket', customer: 'Agus W.', qty: 1, total: 600000, date: '2025-04-30', status: 'Cancelled' },
-  { id: 'ORD-1005', product: 'Urban Shirt', customer: 'Siti L.', qty: 2, total: 900000, date: '2025-04-29', status: 'Completed' },
-  { id: 'ORD-1006', product: 'Canvas Tote', customer: 'Yusuf H.', qty: 1, total: 250000, date: '2025-04-29', status: 'Completed' },
+// Mock data for Product Orders Table
+interface MockOrder {
+  id: string;
+  product: string;
+  customer: string;
+  qty: number;
+  total: number;
+  date: string;
+  status: 'Completed' | 'Pending' | 'Cancelled';
+}
+
+const mockOrders: MockOrder[] = [
+  {
+    id: 'ORD-001',
+    product: 'Eco Jacket',
+    customer: 'Alice',
+    qty: 2,
+    total: 500000,
+    date: '2025-05-01',
+    status: 'Completed',
+  },
+  {
+    id: 'ORD-002',
+    product: 'Organic T-Shirt',
+    customer: 'Bob',
+    qty: 1,
+    total: 200000,
+    date: '2025-05-02',
+    status: 'Pending',
+  },
+  {
+    id: 'ORD-003',
+    product: 'Recycled Bag',
+    customer: 'Charlie',
+    qty: 3,
+    total: 450000,
+    date: '2025-05-03',
+    status: 'Cancelled',
+  },
 ];
-// --- End Mock Orders Data ---
 
+// --- Vendor Summary Cards ---
+const VendorSummaryCards = () => {
+  const [stats, setStats] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
-// --- Analytics Chart Components (mock data) ---
-const months = [
-  'Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024', 'Jul 2024',
-  'Aug 2024', 'Sep 2024', 'Oct 2024', 'Nov 2024', 'Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025'
-];
-const revenueByMonth = [12000000, 13500000, 14000000, 15800000, 16200000, 17000000, 18000000, 18200000, 19000000, 20000000, 21000000, 22000000, 22500000, 23000000, 24000000, 25000000, 26000000];
-const RevenueLineChart = () => (
-  <LineChart
-    height={220}
-    series={[{ data: revenueByMonth, label: 'Revenue', color: '#bfa76a' }]}
-    xAxis={[{ scaleType: 'point', data: months }]}
-    margin={{ left: 60, right: 20, top: 20, bottom: 20 }}
-  />
-);
+  React.useEffect(() => {
+    let isMounted = true;
+    const fetchStats = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await apiRequest(`${API_BASE_URL}/vendor/stats`, { method: 'GET' });
+        if (!res.ok) throw new Error('Failed to fetch stats');
+        const data = await res.json();
+        if (isMounted) setStats(data.stats || data);
+      } catch (err: any) {
+        if (isMounted) setError(err.message || 'Error fetching stats');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetchStats();
+    return () => { isMounted = false; };
+  }, []);
 
-const ordersByMonth = [80, 95, 110, 120, 125, 140, 145, 150, 160, 170, 175, 180, 185, 190, 200, 210, 215];
-const OrdersBarChart = () => (
-  <BarChart
-    height={220}
-    series={[{ data: ordersByMonth, label: 'Orders', color: '#bfa76a' }]}
-    xAxis={[{ scaleType: 'band', data: months }]}
-    margin={{ left: 60, right: 20, top: 20, bottom: 20 }}
-  />
-);
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow p-6 text-center border border-[#f0e9d6] animate-pulse">
+            <div className="text-gray-400 text-sm mb-2">&nbsp;</div>
+            <div className="text-2xl font-bold text-[#bfa76a] bg-gray-100 h-8 w-1/2 mx-auto rounded" />
+          </div>
+        ))}
+      </div>
+    );
+    
+  }
+  if (error) {
+    return <div className="text-red-500 mb-4">{error}</div>;
+  }
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="bg-white rounded-lg shadow p-6 text-center border border-[#f0e9d6]">
+        <div className="text-gray-500 text-sm mb-2">Total Sales</div>
+        <div className="text-2xl font-bold text-[#bfa76a]">{stats?.total_sales ?? '-'}</div>
+      </div>
+      <div className="bg-white rounded-lg shadow p-6 text-center border border-[#f0e9d6]">
+        <div className="text-gray-500 text-sm mb-2">Total Orders</div>
+        <div className="text-2xl font-bold text-[#bfa76a]">{stats?.total_orders ?? '-'}</div>
+      </div>
+      <div className="bg-white rounded-lg shadow p-6 text-center border border-[#f0e9d6]">
+        <div className="text-gray-500 text-sm mb-2">Revenue</div>
+        <div className="text-2xl font-bold text-[#bfa76a]">Rp {stats?.revenue ? stats.revenue.toLocaleString('id-ID') : '-'}</div>
+      </div>
+      <div className="bg-white rounded-lg shadow p-6 text-center border border-[#f0e9d6]">
+        <div className="text-gray-500 text-sm mb-2">Top Product</div>
+        <div className="text-2xl font-bold text-[#bfa76a]">{stats?.top_product ?? '-'}</div>
+      </div>
+    </div>
+  );
+}
+
+// --- Vendor Analytics Hook ---
+function useVendorAnalytics() {
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [months, setMonths] = React.useState<string[]>([]);
+  const [revenueByMonth, setRevenueByMonth] = React.useState<number[]>([]);
+  const [ordersByMonth, setOrdersByMonth] = React.useState<number[]>([]);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const fetchStats = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await apiRequest(`${API_BASE_URL}/vendor/stats`, { method: 'GET' });
+        if (!res.ok) throw new Error('Failed to fetch stats');
+        const data = await res.json();
+        const stats = data.stats || data;
+        // monthly_orders: [{month: 202401, total_orders: 10}, ...]
+        // monthly_revenue: [{month: 202401, total_revenue: 1000000}, ...]
+        const orderMap = new Map<number, number>();
+        const revenueMap = new Map<number, number>();
+        if (Array.isArray(stats.monthly_orders)) {
+          stats.monthly_orders.forEach((item: any) => {
+            orderMap.set(item.month, item.total_orders || 0);
+          });
+        }
+        if (Array.isArray(stats.monthly_revenue)) {
+          stats.monthly_revenue.forEach((item: any) => {
+            revenueMap.set(item.month, item.total_revenue || 0);
+          });
+        }
+        // Get all months from both arrays, sort ascending
+        const allMonths = Array.from(new Set([
+          ...orderMap.keys(),
+          ...revenueMap.keys()
+        ])).sort();
+        // Format months as 'MMM YYYY'
+        const monthLabels = allMonths.map(m => {
+          const y = Math.floor(m / 100);
+          const mo = m % 100;
+          const date = new Date(y, mo - 1);
+          return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+        });
+        const orders = allMonths.map(m => orderMap.get(m) || 0);
+        const revenue = allMonths.map(m => revenueMap.get(m) || 0);
+        if (isMounted) {
+          setMonths(monthLabels);
+          setOrdersByMonth(orders);
+          setRevenueByMonth(revenue);
+        }
+      } catch (err: any) {
+        if (isMounted) setError(err.message || 'Error fetching analytics');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetchStats();
+    return () => { isMounted = false; };
+  }, []);
+  return { loading, error, months, revenueByMonth, ordersByMonth };
+}
+
+function VendorAnalyticsCharts() {
+  const { loading, error, months, revenueByMonth, ordersByMonth } = useVendorAnalytics();
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {[...Array(2)].map((_, i) => (
+          <div key={i} className="bg-gray-100 rounded-lg h-[250px] animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+  if (error) {
+    return <div className="text-red-500 mb-4">{error}</div>;
+  }
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div>
+        <RevenueLineChart months={months} revenueByMonth={revenueByMonth} />
+      </div>
+      <div>
+        <OrdersBarChart months={months} ordersByMonth={ordersByMonth} />
+      </div>
+    </div>
+  );
+}
+
+// --- Analytics Chart Components ---
+function RevenueLineChart({ months, revenueByMonth }: { months?: string[]; revenueByMonth?: number[] }) {
+  if (!Array.isArray(months) || !months.length || !Array.isArray(revenueByMonth) || !revenueByMonth.length) {
+    return (
+      <div className="flex items-center justify-center h-[220px] text-gray-400 bg-gray-50 rounded-lg border border-gray-100">
+        No revenue data available.
+      </div>
+    );
+  }
+  return (
+    <LineChart
+      height={220}
+      series={[{ data: revenueByMonth, label: 'Revenue', color: '#bfa76a' }]}
+      xAxis={[{ scaleType: 'point', data: months }]}
+      margin={{ left: 60, right: 20, top: 20, bottom: 20 }}
+    />
+  );
+}
+
+function OrdersBarChart({ months, ordersByMonth }: { months?: string[]; ordersByMonth?: number[] }) {
+  if (!Array.isArray(months) || !months.length || !Array.isArray(ordersByMonth) || !ordersByMonth.length) {
+    return (
+      <div className="flex items-center justify-center h-[220px] text-gray-400 bg-gray-50 rounded-lg border border-gray-100">
+        No orders data available.
+      </div>
+    );
+  }
+  return (
+    <BarChart
+      height={220}
+      series={[{ data: ordersByMonth, label: 'Orders', color: '#bfa76a' }]}
+      xAxis={[{ scaleType: 'band', data: months }]}
+      margin={{ left: 60, right: 20, top: 20, bottom: 20 }}
+    />
+  );
+}
 
 const ProductPieChart = () => (
   <PieChart
@@ -55,7 +249,6 @@ const ProductPieChart = () => (
     margin={{ left: 60, right: 20, top: 20, bottom: 20 }}
   />
 );
-// --- End Analytics Chart Components ---
 
 import { useRouter } from "next/navigation";
 // Ensure AuthController.getToken() reads from localStorage
@@ -112,9 +305,8 @@ const VendorDashboard = () => {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editProduct, setEditProduct] = useState<any>(null);
   const [productFormError, setProductFormError] = useState<string | null>(null);
+  const [productFormLoading, setProductFormLoading] = useState(false);
 
-  // Fetch vendor business settings
-  // Fetch business settings (top-level so it can be reused)
   const fetchBusinessSettings = async () => {
     setBusinessSettingsLoading(true);
     setBusinessSettingsError(null);
@@ -189,7 +381,6 @@ const VendorDashboard = () => {
     }
   };
 
-// ... (rest of the code remains the same)
   // Handlers for product form
   const handleProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProductForm({ ...productForm, [e.target.name]: e.target.value });
@@ -197,6 +388,7 @@ const VendorDashboard = () => {
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setProductFormError(null);
+    setProductFormLoading(true);
     // Validate required fields
     const requiredFields = [
       'name', 'description', 'price', 'tags', 'sustainability_attributes',
@@ -205,6 +397,7 @@ const VendorDashboard = () => {
     for (const field of requiredFields) {
       if (!productForm[field] || productForm[field].toString().trim() === '') {
         setProductFormError('All fields are required.');
+        setProductFormLoading(false);
         return;
       }
     }
@@ -221,13 +414,24 @@ const VendorDashboard = () => {
       images: productForm.images.split(',').map((t: string) => t.trim()).filter(Boolean),
     };
     try {
-      const res = await apiRequest(`${API_BASE_URL}/products`, {
-        method: 'POST',
-        body: JSON.stringify(body)
-      });
+      let res;
+      if (editProduct && editProduct.id) {
+        // Editing: update existing product
+        res = await apiRequest(`${API_BASE_URL}/products/${editProduct.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(body)
+        });
+      } else {
+        // Adding: create new product
+        res = await apiRequest(`${API_BASE_URL}/products`, {
+          method: 'POST',
+          body: JSON.stringify(body)
+        });
+      }
       if (!res.ok) {
         const errorText = await res.text();
-        setProductFormError(errorText || 'Failed to add product');
+        setProductFormError(errorText || (editProduct ? 'Failed to update product' : 'Failed to add product'));
+        setProductFormLoading(false);
         return;
       }
       await fetchProducts();
@@ -235,7 +439,9 @@ const VendorDashboard = () => {
       setEditProduct(null);
       setProductForm(initialProductForm);
     } catch (err: any) {
-      setProductFormError(err.message || 'Error adding product');
+      setProductFormError(err.message || (editProduct ? 'Error updating product' : 'Error adding product'));
+    } finally {
+      setProductFormLoading(false);
     }
   };
   const handleEditProduct = (product: any) => {
@@ -295,24 +501,7 @@ const VendorDashboard = () => {
         {activeSection === 'dashboard' && (
           <div>
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow p-6 text-center border border-[#f0e9d6]">
-                <div className="text-gray-500 text-sm mb-2">Total Sales</div>
-                <div className="text-2xl font-bold text-[#bfa76a]">1,240</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center border border-[#f0e9d6]">
-                <div className="text-gray-500 text-sm mb-2">Total Orders</div>
-                <div className="text-2xl font-bold text-[#bfa76a]">320</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center border border-[#f0e9d6]">
-                <div className="text-gray-500 text-sm mb-2">Revenue</div>
-                <div className="text-2xl font-bold text-[#bfa76a]">Rp 54,200,000</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center border border-[#f0e9d6]">
-                <div className="text-gray-500 text-sm mb-2">Top Product</div>
-                <div className="text-2xl font-bold text-[#bfa76a]">Eco Jacket</div>
-              </div>
-            </div>
+            <VendorSummaryCards />
             {/* Analytics Section */}
             <section className="bg-white rounded-lg shadow p-6 border border-[#f0e9d6] mb-8">
               <h2 className="text-xl font-semibold text-[#bfa76a] mb-6">Analytics</h2>
@@ -356,7 +545,7 @@ const VendorDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
-                    {mockOrders.map((order) => (
+                    {mockOrders.map((order: MockOrder) => (
                       <tr key={order.id}>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{order.id}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{order.product}</td>
@@ -504,13 +693,13 @@ const VendorDashboard = () => {
                   return (
                     <div
                       key={product.id}
-                      className={`bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-200 flex flex-col overflow-hidden border border-[#f6f3ea] ${isDeactive ? 'opacity-60 grayscale relative pointer-events-none' : ''}`}
+                      className={`group rounded-2xl p-0 bg-white shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-[#ede9dd] overflow-hidden flex flex-col ${isDeactive ? 'opacity-60 grayscale relative pointer-events-none' : ''}`}
                     >
-                      <div className="h-40 bg-[#f6f3ea] flex items-center justify-center relative">
+                      <div className="relative w-full aspect-[4/5] min-h-[210px] flex items-end justify-center overflow-hidden bg-gradient-to-br from-[#f8f5f0] to-[#e7e2d1]">
                         {product.primary_image_url ? (
-                          <img src={product.primary_image_url} alt={product.name} className="object-contain h-32 w-full" />
+                          <img src={product.primary_image_url} alt={product.name} className="w-full h-full object-cover bg-gray-100 rounded-2xl" />
                         ) : (
-                          <div className="flex items-center justify-center h-32 w-full text-gray-300 text-6xl">
+                          <div className="flex items-center justify-center w-full h-full text-gray-300 text-6xl">
                             <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v1M3 7v11a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V7M3 7h18m-9 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm6 2c0 .943-.658 1.5-1.5 1.5S15 13.943 15 13c0-.943.658-1.5 1.5-1.5S18 12.057 18 13Z"/></svg>
                           </div>
                         )}
@@ -544,24 +733,40 @@ const VendorDashboard = () => {
                             </div>
                           </React.Fragment>
                         )}
+                        {/* Floating edit/delete buttons */}
+                        {!isDeactive && (
+                          <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <button className="p-2 bg-white/80 rounded-full shadow hover:bg-[#f2e6c7]" title="Edit" onClick={() => handleEditProduct(product)}>
+                              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6-6 3 3-6 6H9v-3z" /></svg>
+                            </button>
+                            <button className="p-2 bg-white/80 rounded-full shadow hover:bg-[#f2e6c7]" title="Delete" onClick={() => handleDeleteProduct(product.id)}>
+                              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </div>
+                        )}
                       </div>
                       <div className="p-4 flex-1 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-lg text-gray-900 truncate" title={product.name}>{product.name}</h3>
-                          {isDeactive ? (
-                            <span className="px-2 py-1 rounded text-xs font-medium bg-gray-200 text-gray-600 border border-gray-300">Deactive</span>
-                          ) : (
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${stockColor}`}>{stockStatus}</span>
-                          )}
+                          <h3 className="font-semibold text-base text-gray-900 truncate" title={product.name}>{product.name}</h3>
+                          {!isDeactive && <span className={`px-2 py-1 rounded text-xs font-medium ${stockColor}`}>{stockStatus}</span>}
+                          {isDeactive && <span className="px-2 py-1 rounded text-xs font-medium bg-gray-200 text-gray-600 border border-gray-300">Deactive</span>}
                         </div>
-                        <div className="text-[#bfa76a] font-bold text-xl">
-                          {Number(product.price).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                        </div>
+                        {/* Images row */}
+                        {Array.isArray(product.images) && product.images.length > 0 && (
+                          <div className="flex items-center gap-2 overflow-x-auto py-2">
+                            {product.images.map((img: string, idx: number) => (
+                              <img
+                                key={idx}
+                                src={img}
+                                alt={`Product image ${idx + 1}`}
+                                className="w-16 h-16 object-cover rounded-lg border border-[#ede9dd] mr-2 bg-gray-100"
+                                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                        <div className="text-[#bfa76a] font-bold text-lg mb-1">{Number(product.price).toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })}</div>
                         <div className="text-sm text-gray-500">Stock: {product.stock}</div>
-                        <div className="flex gap-2 mt-2">
-                          <button className="flex-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors" onClick={() => handleEditProduct(product)}>Edit</button>
-                          <button className="flex-1 px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors" onClick={() => handleDeleteProduct(product.id)}>Delete</button>
-                        </div>
                       </div>
                     </div>
                   );
@@ -575,22 +780,91 @@ const VendorDashboard = () => {
               <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                 <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md border border-[#f0e9d6] animate-fadeIn">
                   <h3 className="text-xl font-bold mb-4 text-[#bfa76a]">{editProduct ? 'Edit Product' : 'Add Product'}</h3>
-                  <form onSubmit={handleProductSubmit} className="flex flex-col gap-4">
-                    <input className="border border-[#e8d8b9] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bfa76a]" name="name" value={productForm.name} onChange={handleProductChange} placeholder="Product Name" required />
-                    <textarea className="border border-[#e8d8b9] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bfa76a] resize-none" name="description" value={productForm.description} onChange={handleProductChange} placeholder="Description" rows={3} required />
-                    <input className="border border-[#e8d8b9] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bfa76a]" name="price" value={productForm.price} onChange={handleProductChange} placeholder="Price" type="number" min="0" required />
-                    <input className="border border-[#e8d8b9] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bfa76a]" name="tags" value={productForm.tags} onChange={handleProductChange} placeholder="Tags (comma separated)" required />
-                    <input className="border border-[#e8d8b9] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bfa76a]" name="sustainability_attributes" value={productForm.sustainability_attributes} onChange={handleProductChange} placeholder="Sustainability Attributes (comma separated)" required />
-                    <input className="border border-[#e8d8b9] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bfa76a]" name="stock_quantity" value={productForm.stock_quantity} onChange={handleProductChange} placeholder="Stock Quantity" type="number" min="0" required />
-                    <input className="border border-[#e8d8b9] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bfa76a]" name="min_order_quantity" value={productForm.min_order_quantity} onChange={handleProductChange} placeholder="Min Order Quantity" type="number" min="1" required />
-                    <input className="border border-[#e8d8b9] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bfa76a]" name="primary_image_url" value={productForm.primary_image_url} onChange={handleProductChange} placeholder="Primary Image URL" required />
-                    <input className="border border-[#e8d8b9] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bfa76a]" name="images" value={productForm.images} onChange={handleProductChange} placeholder="Images (comma separated URLs)" required />
-                    {productFormError && <div className="text-red-600 text-sm text-center">{productFormError}</div>}
-                    <div className="flex gap-2 mt-2">
-                      <button type="submit" className="flex-1 px-4 py-2 bg-gradient-to-r from-[#bfa76a] to-[#e0cba8] text-white rounded-lg font-semibold shadow hover:scale-105 transition-transform">Save</button>
-                      <button type="button" className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors" onClick={() => setShowProductForm(false)}>Cancel</button>
-                    </div>
-                  </form>
+                  <form onSubmit={handleProductSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#f9f7f3] p-2 rounded-xl">
+  {/* Left column */}
+  <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-1">
+  <label className="block text-gray-500 text-xs mb-1">Product Name</label>
+  <input type="text" name="name" value={productForm.name} onChange={handleProductChange} required className="border border-[#e8d8b9] p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#bfa76a] bg-white" placeholder="Product Name" />
+</div>
+    <div className="flex flex-col gap-1">
+  <label className="block text-gray-500 text-xs mb-1">Description</label>
+  <textarea name="description" value={productForm.description} onChange={handleProductChange} required rows={3} className="border border-[#e8d8b9] p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#bfa76a] bg-white resize-none" placeholder="Description" />
+</div>
+    <div className="flex flex-col gap-4">
+  <div className="relative">
+    <label className="block text-gray-500 text-xs mb-1">Price</label>
+    <div className="flex items-center relative">
+      <span className="absolute left-3 text-[#bfa76a] font-bold">Rp</span>
+      <input type="number" name="price" value={productForm.price} onChange={handleProductChange} min="0" required className="border border-[#e8d8b9] p-3 rounded-lg w-full pl-10 focus:outline-none focus:ring-2 focus:ring-[#bfa76a] bg-white" placeholder="Price" />
+    </div>
+  </div>
+  <div className="relative">
+    <label className="block text-gray-500 text-xs mb-1">Stock</label>
+    <div className="flex items-center relative">
+      <span className="absolute left-3 text-[#bfa76a] font-bold">Qty</span>
+      <input type="number" name="stock_quantity" value={productForm.stock_quantity} onChange={handleProductChange} min="0" required className="border border-[#e8d8b9] p-3 rounded-lg w-full pl-10 focus:outline-none focus:ring-2 focus:ring-[#bfa76a] bg-white" placeholder="Stock Quantity" />
+    </div>
+  </div>
+</div>
+    <div className="flex gap-2">
+      <div className="flex flex-col gap-1 flex-1">
+  <label className="block text-gray-500 text-xs mb-1">Min Order Qty</label>
+  <input type="number" name="min_order_quantity" value={productForm.min_order_quantity} onChange={handleProductChange} min="1" required className="border border-[#e8d8b9] p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#bfa76a] bg-white" placeholder="Min Order Quantity" />
+</div>
+    </div>
+  </div>
+  {/* Right column */}
+  <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-1">
+  <label className="block text-gray-500 text-xs mb-1">Tags (comma separated)</label>
+  <input type="text" name="tags" value={productForm.tags} onChange={handleProductChange} required className="border border-[#e8d8b9] p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#bfa76a] bg-white" placeholder="Tags (comma separated)" />
+</div>
+    <div className="flex flex-col gap-1">
+  <label className="block text-gray-500 text-xs mb-1">Sustainability Attributes</label>
+  <input type="text" name="sustainability_attributes" value={productForm.sustainability_attributes} onChange={handleProductChange} required className="border border-[#e8d8b9] p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#bfa76a] bg-white" placeholder="Sustainability Attributes (comma separated)" />
+</div>
+    {/* Primary Image Preview */}
+    <div>
+      <label className="block text-gray-500 text-xs mb-1">Primary Image URL</label>
+      <div className="flex items-center gap-2">
+        <input type="text" name="primary_image_url" value={productForm.primary_image_url} onChange={handleProductChange} required className="border border-[#e8d8b9] p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#bfa76a] bg-white" placeholder="Primary Image URL" />
+        {productForm.primary_image_url && (
+          <img src={productForm.primary_image_url} alt="Primary" className="w-16 h-16 object-cover rounded-lg border border-[#ede9dd] bg-gray-100" onError={e => { (e.target as HTMLImageElement).src = '/placeholder.png'; }} />
+        )}
+      </div>
+    </div>
+    {/* Images array preview */}
+    <div>
+      <label className="block text-gray-500 text-xs mb-1">Images (comma separated URLs)</label>
+      <input type="text" name="images" value={productForm.images} onChange={handleProductChange} required className="border border-[#e8d8b9] p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#bfa76a] bg-white mb-2" placeholder="Images (comma separated URLs)" />
+      <div className="flex items-center gap-2 overflow-x-auto">
+        {productForm.images.split(',').map((img: string, idx: number) => img.trim() && (
+          <div key={idx} className="relative group">
+            <img src={img.trim()} alt={`Image ${idx+1}`} className="w-12 h-12 object-cover rounded border border-[#ede9dd] bg-gray-100" onError={e => { (e.target as HTMLImageElement).src = '/placeholder.png'; }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+  {/* Error and buttons full width */}
+  <div className="md:col-span-2">
+    {productFormError && <div className="text-red-600 text-sm text-center mb-2">{productFormError}</div>}
+    <div className="flex gap-2 mt-2">
+      <button type="submit" className="flex-1 px-4 py-2 bg-gradient-to-r from-[#bfa76a] to-[#e0cba8] text-white rounded-lg font-semibold shadow hover:scale-105 transition-transform flex items-center justify-center disabled:opacity-60" disabled={productFormLoading}>
+        {productFormLoading ? (
+          <>
+            <span className="loader border-2 border-white border-t-transparent rounded-full w-4 h-4 animate-spin mr-2"></span>
+            Saving...
+          </>
+        ) : (
+          'Save'
+        )}
+      </button>
+      <button type="button" className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors" onClick={() => setShowProductForm(false)}>Cancel</button>
+    </div>
+  </div>
+</form>
                 </div>
               </div>
             )}
