@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useCallback, useEffect } from "react";
+import { useCart } from "../context/CartContext";
 import Link from "next/link";
-import CartController from "../controllers/cartController";
+import { addCartItem, fetchCart } from "../cart/api";
 import { addToWishlist, removeFromWishlist } from "../controllers/wishlistController";
 import { useAuth } from "@/app/context/AuthContext";
 
@@ -34,6 +35,7 @@ interface ShopClientProps {
 const PRODUCTS_PER_PAGE = 12;
 
 const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
+  const { refreshCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,19 +65,19 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartNotification, setCartNotification] = useState(false);
+  const [cartMessage, setCartMessage] = useState<string | null>(null);
 
-  // Load cart items on component mount
+  // Load cart items from backend on component mount
   useEffect(() => {
-    setCartItems(CartController.getItems());
-    const handleCartUpdate = (event: any) => {
-      if (event.detail && event.detail.cartItems) {
-        setCartItems(event.detail.cartItems);
+    async function loadCart() {
+      try {
+        const data = await fetchCart();
+        setCartItems(data.items || []);
+      } catch (err) {
+        setCartItems([]);
       }
-    };
-    window.addEventListener('cartUpdated', handleCartUpdate);
-    return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate);
-    };
+    }
+    loadCart();
   }, []);
 
   // Function to handle quick view button click
@@ -114,12 +116,43 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
     setQuickViewProduct(null);
   };
 
-  // Function to add item to cart using CartController
-  const addToCart = useCallback((product: Product, quantity: number = 1, size: string = "M", color: string = "Black") => {
-    CartController.addItem(product, quantity, size, color);
-    setCartNotification(true);
-    setTimeout(() => setCartNotification(false), 3000);
-  }, []);
+  // Function to add item to cart using backend API
+  const addToCart = useCallback(async (product: Product, quantity: number = 1, size: string = "M", color: string = "Black") => {
+    const payload = {
+      product_id: typeof product.id === 'string' ? parseInt(product.id, 10) : product.id,
+      quantity,
+      size,
+      color,
+    };
+    console.log('Add to cart payload:', payload);
+    try {
+      const response = await addCartItem(payload);
+      console.log('Add to cart response:', response);
+      // Optionally reload cartItems from backend
+      const data = await fetchCart();
+      setCartItems(data.items || []);
+      await refreshCart(); // <-- Ensure Navbar badge updates
+      setCartMessage(response.message || 'Added to cart!');
+      setCartNotification(true);
+      setTimeout(() => {
+        setCartNotification(false);
+        setCartMessage(null);
+      }, 2000);
+    } catch (err: any) {
+      // Try to extract backend error message
+      console.error('Add to cart error:', err);
+      if (err instanceof Error && err.message) {
+        setCartMessage(err.message);
+      } else {
+        setCartMessage('Failed to add to cart.');
+      }
+      setCartNotification(true);
+      setTimeout(() => {
+        setCartNotification(false);
+        setCartMessage(null);
+      }, 3000);
+    }
+  }, [refreshCart]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -160,9 +193,9 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
         <div className="text-red-500 py-8 text-center">{error}</div>
       )}
       {/* Cart notification */}
-      {cartNotification && (
+      {cartNotification && cartMessage && (
         <div className="fixed top-6 right-6 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
-          Added to cart!
+          {cartMessage}
         </div>
       )}
       {/* Category filter and sort dropdown (single context) */}
