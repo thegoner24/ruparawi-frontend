@@ -22,6 +22,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link href="  /dashboard/buyer/profile">
             <span className="text-left px-3 py-2 rounded hover:bg-[#f0e9d6] block">Profile</span>
           </Link>
+          <Link href="/dashboard/buyer/payment-method">
+            <span className="text-left px-3 py-2 rounded hover:bg-[#f0e9d6] block">Payment Method</span>
+          </Link>
           <Link href="/dashboard/buyer/notifications">
             <span className="text-left px-3 py-2 rounded hover:bg-[#f0e9d6] block">Notifications</span>
           </Link>

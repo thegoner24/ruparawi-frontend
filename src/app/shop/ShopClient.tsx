@@ -72,7 +72,7 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
     async function loadCart() {
       try {
         const data = await fetchCart();
-        setCartItems(data.items || []);
+        setCartItems(data.cart_items || []);
       } catch (err) {
         setCartItems([]);
       }
@@ -130,7 +130,7 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
       console.log('Add to cart response:', response);
       // Optionally reload cartItems from backend
       const data = await fetchCart();
-      setCartItems(data.items || []);
+      setCartItems(data.cart_items || []);
       await refreshCart(); // <-- Ensure Navbar badge updates
       setCartMessage(response.message || 'Added to cart!');
       setCartNotification(true);

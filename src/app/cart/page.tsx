@@ -34,12 +34,14 @@ export default function CartPage() {
       setLoading(true);
       try {
         const data = await fetchCart();
-        console.log('Cart page fetchCart response:', data);
         setCartItems(data.cart_items || []);
-        setSubtotal(data.subtotal || 0);
-        setShipping(data.shipping || 0);
-        setDiscount(data.discount || 0);
-        setTotal(data.total || 0);
+        // Compute subtotal, shipping, discount, total if not present
+        const items = data.cart_items || [];
+        const subtotal = items.reduce((sum: number, item: any) => sum + ((item.product?.price || 0) * (item.quantity || 0)), 0);
+        setSubtotal(typeof data.subtotal === 'number' ? data.subtotal : subtotal);
+        setShipping(typeof data.shipping === 'number' ? data.shipping : 0);
+        setDiscount(typeof data.discount === 'number' ? data.discount : 0);
+        setTotal(typeof data.total === 'number' ? data.total : (subtotal + 0 - 0));
       } catch (err) {
         // Optionally handle error
         setCartItems([]);
@@ -63,12 +65,14 @@ export default function CartPage() {
       await updateCartItem(product_id, { quantity: newQuantity });
       // Reload cart after update
       const data = await fetchCart();
-      console.log('Cart page fetchCart after updateQuantity:', data);
+
       setCartItems(data.cart_items || []);
-      setSubtotal(data.subtotal || 0);
-      setShipping(data.shipping || 0);
-      setDiscount(data.discount || 0);
-      setTotal(data.total || 0);
+      const items = data.cart_items || [];
+      const subtotal = items.reduce((sum: number, item: any) => sum + ((item.product?.price || 0) * (item.quantity || 0)), 0);
+      setSubtotal(typeof data.subtotal === 'number' ? data.subtotal : subtotal);
+      setShipping(typeof data.shipping === 'number' ? data.shipping : 0);
+      setDiscount(typeof data.discount === 'number' ? data.discount : 0);
+      setTotal(typeof data.total === 'number' ? data.total : (subtotal + 0 - 0));
     } catch (err) {
       // Optionally handle error
     }
@@ -80,23 +84,51 @@ export default function CartPage() {
       await deleteCartItem(product_id);
       // Reload cart after remove
       const data = await fetchCart();
-      console.log('Cart page fetchCart after removeItem:', data);
       setCartItems(data.cart_items || []);
-      setSubtotal(data.subtotal || 0);
-      setShipping(data.shipping || 0);
-      setDiscount(data.discount || 0);
-      setTotal(data.total || 0);
+      const items = data.cart_items || [];
+      const subtotal = items.reduce((sum: number, item: any) => sum + ((item.product?.price || 0) * (item.quantity || 0)), 0);
+      setSubtotal(typeof data.subtotal === 'number' ? data.subtotal : subtotal);
+      setShipping(typeof data.shipping === 'number' ? data.shipping : 0);
+      setDiscount(typeof data.discount === 'number' ? data.discount : 0);
+      setTotal(typeof data.total === 'number' ? data.total : (subtotal + 0 - 0));
     } catch (err) {
       // Optionally handle error
     }
   };
   
-  // Promo code currently not supported by backend API
-  const applyPromoCode = () => {
-    alert("Promo code feature is not available at the moment.");
+  // Promo code logic
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+
+  const applyPromoCode = async () => {
+    setPromoLoading(true);
+    setPromoMessage(null);
+    // Simulate backend promo code check
+    try {
+      // Example: WELCOME10 gives 10% off
+      if (promoCode.trim().toUpperCase() === 'WELCOME10') {
+        const discountValue = Math.round(subtotal * 0.1);
+        setDiscount(discountValue);
+        setTotal(subtotal + shipping - discountValue);
+        setPromoApplied(true);
+        setPromoMessage('Promo code applied successfully!');
+      } else {
+        setPromoMessage('Invalid promo code.');
+      }
+    } finally {
+      setPromoLoading(false);
+    }
   };
+
+  const removePromoCode = () => {
+    setPromoApplied(false);
+    setPromoCode('');
+    setDiscount(0);
+    setTotal(subtotal + shipping);
+    setPromoMessage(null);
+  };
+
   
-  console.log('Cart items structure:', cartItems);
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-12">
@@ -261,27 +293,37 @@ export default function CartPage() {
                       placeholder="Enter code"
                       className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#d4b572] focus:border-transparent"
                     />
-                    <button
-                      onClick={applyPromoCode}
-                      disabled={promoApplied || !promoCode}
-                      className={`px-4 py-2 rounded-md ${
-                        promoApplied
-                          ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                          : 'bg-black text-white hover:bg-gray-900'
-                      }`}
-                    >
-                      {promoApplied ? 'Applied' : 'Apply'}
-                    </button>
+                    {!promoApplied ? (
+                      <button
+                        onClick={applyPromoCode}
+                        disabled={promoApplied || !promoCode || promoLoading}
+                        className={`px-4 py-2 rounded-md ${
+                          promoApplied || !promoCode || promoLoading
+                            ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                            : 'bg-black text-white hover:bg-gray-900'
+                        }`}
+                      >
+                        {promoLoading ? 'Applying...' : 'Apply'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={removePromoCode}
+                        className="px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
+                        type="button"
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
-                  {promoApplied && (
-                    <p className="text-sm text-[#d4b572] mt-1">Promo code applied successfully!</p>
+                  {promoMessage && (
+                    <p className={`text-sm mt-1 ${promoApplied ? 'text-[#d4b572]' : 'text-red-600'}`}>{promoMessage}</p>
                   )}
                 </div>
                 
                 {/* Checkout button */}
-                <button className="w-full bg-black text-white py-3 rounded-md font-medium hover:bg-gray-900 transition-colors mb-4">
+                <Link href="/checkout" className="w-full block text-center bg-black text-white py-3 rounded-md font-medium hover:bg-gray-900 transition-colors mb-4">
                   Proceed to Checkout
-                </button>
+                </Link>
                 
                 {/* Secure checkout */}
                 <div className="flex items-center justify-center text-sm text-gray-500">

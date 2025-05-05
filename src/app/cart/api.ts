@@ -49,6 +49,22 @@ export async function updateCartItem(product_id: number | string, data: {
   return res.json();
 }
 
+// Checkout endpoint
+export async function checkoutOrder(payload: any) {
+  const token = AuthController.getToken?.() || null;
+  const res = await fetch(`${API_BASE_URL}/order/checkout`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to checkout");
+  return res.json();
+}
+
 export async function deleteCartItem(product_id: number | string) {
   const token = AuthController.getToken?.() || null;
   const res = await fetch(`${API_BASE_URL}/order/cart/item/${product_id}`, {
@@ -59,3 +75,4 @@ export async function deleteCartItem(product_id: number | string) {
   if (!res.ok) throw new Error("Failed to delete cart item");
   return res.json();
 }
+
