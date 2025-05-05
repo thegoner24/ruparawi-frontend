@@ -41,28 +41,28 @@ export default function ArticleModal({ open, onClose, onSubmit, loading, error, 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative animate-fade-in">
-        <button className="absolute top-3 right-3 text-2xl text-gray-400 hover:text-pink-600 transition-colors" onClick={onClose} aria-label="Close">&times;</button>
-        <h2 className="text-2xl font-extrabold mb-6 text-pink-700 flex items-center gap-2">
-          {initial ? <span className="inline-block bg-pink-100 text-pink-700 rounded px-2 py-1 text-sm font-semibold">Edit</span> : <span className="inline-block bg-pink-100 text-pink-700 rounded px-2 py-1 text-sm font-semibold">Add</span>}
+        <button className="absolute top-3 right-3 text-2xl text-gray-400 hover:text-yellow-600 transition-colors" onClick={onClose} aria-label="Close">&times;</button>
+        <h2 className="text-2xl font-extrabold mb-6 text-yellow-700 flex items-center gap-2">
+          {initial ? <span className="inline-block bg-yellow-100 text-yellow-700 rounded px-2 py-1 text-sm font-semibold">Edit</span> : <span className="inline-block bg-yellow-100 text-yellow-700 rounded px-2 py-1 text-sm font-semibold">Add</span>}
           Article
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="relative">
             <input
-              className="peer w-full border-2 border-pink-200 rounded-lg px-4 py-3 focus:outline-none focus:border-pink-500 transition placeholder-transparent"
+              className="peer w-full border-2 border-yellow-200 rounded-lg px-4 py-3 focus:outline-none focus:border-yellow-600 transition placeholder-transparent"
               value={title}
               onChange={e => setTitle(e.target.value)}
               required
               id="article-title-input"
               placeholder="Article title"
             />
-            <label htmlFor="article-title-input" className="absolute left-4 top-3 text-gray-400 transition-all peer-focus:-top-5 peer-focus:text-xs peer-focus:text-pink-600 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 bg-white px-1 pointer-events-none">
-              Title<span className="text-pink-600">*</span>
+            <label htmlFor="article-title-input" className="absolute left-4 top-3 text-gray-400 transition-all peer-focus:-top-5 peer-focus:text-xs peer-focus:text-yellow-600 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 bg-white px-1 pointer-events-none">
+              Title<span className="text-yellow-600">*</span>
             </label>
           </div>
           <div className="relative">
-            <label className="block font-medium mb-1 mb-2">Content<span className="text-pink-600">*</span></label>
-            <div className="rounded-lg border-2 border-pink-200 focus-within:border-pink-500 bg-white overflow-hidden">
+            <label className="block font-medium mb-1 mb-2">Content<span className="text-yellow-600">*</span></label>
+            <div className="rounded-lg border-2 border-yellow-200 focus-within:border-yellow-600 bg-white overflow-hidden">
               <MDEditor
                 value={content}
                 onChange={(v: string | undefined) => setContent(v || "")}
@@ -80,7 +80,7 @@ export default function ArticleModal({ open, onClose, onSubmit, loading, error, 
             <input
               type="url"
               id="article-image-url"
-              className={`peer w-full border-2 rounded-lg px-4 py-3 focus:outline-none transition placeholder-transparent ${image && isValidImageUrl(image) ? 'border-pink-500' : 'border-pink-200'} ${image && !isValidImageUrl(image) ? 'border-red-400' : ''}`}
+              className={`peer w-full border-2 rounded-lg px-4 py-3 focus:outline-none transition placeholder-transparent ${image && isValidImageUrl(image) ? 'border-yellow-600' : 'border-yellow-200'} ${image && !isValidImageUrl(image) ? 'border-red-400' : ''}`}
               value={image}
               onChange={e => setImage(e.target.value)}
               placeholder="https://example.com/image.jpg"
@@ -88,13 +88,13 @@ export default function ArticleModal({ open, onClose, onSubmit, loading, error, 
               spellCheck={false}
               inputMode="url"
             />
-            <label htmlFor="article-image-url" className="absolute left-4 top-3 text-gray-400 transition-all peer-focus:-top-5 peer-focus:text-xs peer-focus:text-pink-600 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 bg-white px-1 pointer-events-none">
+            <label htmlFor="article-image-url" className="absolute left-4 top-3 text-gray-400 transition-all peer-focus:-top-5 peer-focus:text-xs peer-focus:text-yellow-600 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 bg-white px-1 pointer-events-none">
               Image URL
             </label>
             {image && (
               <button
                 type="button"
-                className="absolute right-3 top-3 text-gray-400 hover:text-pink-600 text-lg focus:outline-none"
+                className="absolute right-3 top-3 text-gray-400 hover:text-yellow-600 text-lg focus:outline-none"
                 aria-label="Clear image URL"
                 tabIndex={0}
                 onClick={() => setImage("")}
@@ -126,7 +126,7 @@ export default function ArticleModal({ open, onClose, onSubmit, loading, error, 
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-lg bg-pink-600 text-white hover:bg-pink-700 font-bold shadow-md transition disabled:opacity-60"
+              className="px-6 py-2 rounded-lg bg-yellow-600 text-white hover:bg-yellow-700 font-bold shadow-md transition disabled:opacity-60"
               disabled={loading}
             >
               {loading ? (

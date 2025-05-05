@@ -54,7 +54,7 @@ export default function ArticleDetailPage() {
       <div className="flex flex-col md:flex-row gap-8">
         {/* Main Article */}
         <div className="flex-1 bg-white rounded-xl shadow p-6">
-          <Link href="/articles" className="text-pink-600 underline mb-4 inline-block">&larr; Back to Articles</Link>
+          <Link href="/articles" className="text-yellow-600 underline mb-6 inline-block font-semibold">&larr; Back to Articles</Link>
           {loading ? (
             <div className="text-gray-400">Loading article...</div>
           ) : error ? (
@@ -62,22 +62,23 @@ export default function ArticleDetailPage() {
           ) : article ? (
             <>
               {article.image_url && (
-                <img src={article.image_url} alt="Article" className="mb-6 rounded-xl border max-h-80 w-full object-cover" />
+                <img src={article.image_url} alt="Article" className="mb-8 rounded-2xl border border-yellow-100 w-full h-auto shadow" />
               )}
-              <h1 className="text-3xl font-bold mb-2 leading-tight">{article.title}</h1>
-              <div className="flex items-center gap-3 text-sm text-gray-500 mb-6">
+              <div className="inline-block mb-4 px-4 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-semibold tracking-wider border border-yellow-200">Featured Article</div>
+              <h1 className="text-4xl font-extrabold mb-3 leading-tight text-yellow-700">{article.title}</h1>
+              <div className="flex items-center gap-3 text-sm text-yellow-700 mb-8 font-medium">
                 <span>Published: {new Date(article.created_at).toLocaleString()}</span>
                 {/* <span>&bull;</span>
                 <span>5 min read</span> */}
               </div>
-              <div className="prose prose-pink max-w-none text-lg" dangerouslySetInnerHTML={{ __html: article.content }} />
+              <div className="prose prose-yellow max-w-none text-lg mt-6" dangerouslySetInnerHTML={{ __html: article.content }} />
             </>
           ) : null}
         </div>
         {/* Sidebar */}
         <aside className="w-full md:w-80 shrink-0">
-          <div className="bg-white rounded-xl shadow p-5">
-            <h2 className="text-lg font-bold mb-4">Top Stories</h2>
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-yellow-100">
+            <h2 className="text-lg font-bold mb-6 text-yellow-700 flex items-center gap-2"><span className='inline-block w-2 h-2 bg-yellow-400 rounded-full'></span>Top Stories</h2>
             {sidebarLoading ? (
               <div className="text-gray-400">Loading...</div>
             ) : sidebarArticles.length === 0 ? (
@@ -90,7 +91,7 @@ export default function ArticleDetailPage() {
                       <img src={a.image_url} alt={a.title} className="w-16 h-16 object-cover rounded-md border bg-gray-50" />
                     )}
                     <div>
-                      <Link href={`/articles/${a.id}`} className="font-semibold text-pink-700 hover:text-pink-900 line-clamp-2">
+                      <Link href={`/articles/${a.id}`} className="font-semibold text-yellow-700 hover:text-yellow-900 line-clamp-2">
                         {a.title}
                       </Link>
                       <div className="text-xs text-gray-500 mt-1">

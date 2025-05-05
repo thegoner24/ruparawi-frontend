@@ -14,6 +14,7 @@ export interface Article {
   id: number;
   title: string;
   updated_at: string;
+  image_url: string;
   [property: string]: any;
 }
 
@@ -69,7 +70,9 @@ export async function updateArticle(articleId: number, data: any) {
     }
   );
   if (!res.ok) throw new Error("Failed to update article");
-  return res.json();
+  const json = await res.json();
+  console.log('Update response:', json);
+  return json;
 }
 
 export async function deleteArticle(articleId: number) {

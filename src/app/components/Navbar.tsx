@@ -165,7 +165,7 @@ export default function Navbar() {
             </button>
             <h2 className="text-lg font-bold mb-4 text-black">MENU</h2>
             <nav className="flex flex-col gap-4">
-              {[{ label: "About", href: "/about" }, { label: "Shop", href: "/shop" }, { label: "Login", href: "/login" }].map(({ label, href }, idx) => (
+              {[{ label: "About", href: "/about" }, { label: "Shop", href: "/shop" }, { label: "Articles", href: "/articles" }, { label: "Login", href: "/login" }].map(({ label, href }, idx) => (
                 <a
                   key={label + '-' + idx}
                   href={href}
