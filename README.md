@@ -36,6 +36,15 @@ Rupa Rawi is a sustainable community market platform that empowers local artists
 - Profile and account management
 - Clean, accessible UI with smooth animations
 
+## 👩‍💼 Admin Features
+- Vendor Management section with tabbed interface:
+  - **Active Vendors:** List, view, suspend, or delete approved vendors
+  - **Vendor Requests:** Review, approve, or reject pending vendor applications (bulk actions supported)
+- Three-status system for vendors: **Active** (green), **Pending** (yellow), **Rejected** (red)
+- Vendor List Preview in dashboard overview for quick access
+- Articles section for admins to publish articles (title, content, image upload, rich text editing planned)
+- Success/error notifications for admin actions
+
 ## 🛠️ Getting Started
 1. **Install dependencies:**
    ```bash

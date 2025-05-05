@@ -2,8 +2,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 // Using SVG directly instead of react-icons to avoid dependency issues
-import CartController from "../controllers/cartController";
 import AuthController from "../controllers/authController";
 
 // Define cart item type
@@ -18,43 +18,13 @@ interface CartItem {
 }
 
 export default function Navbar() {
-  const { user, role, clearAuth } = useAuth();
+  const { user, roles, clearAuth } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  
-  // Load cart items using CartController
-  useEffect(() => {
-    // Load cart items initially
-    setCartItems(CartController.getItems());
-    
-    // Listen for cart updates from other components
-    const handleCartUpdate = (event: any) => {
-      if (event.detail && event.detail.cartItems) {
-        setCartItems(event.detail.cartItems);
-      }
-    };
-    
-    // Set up event listener
-    window.addEventListener('cartUpdated', handleCartUpdate);
-    
-    // Set up storage event listener to sync across tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'cartItems' && e.newValue) {
-        setCartItems(CartController.getItems());
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Clean up event listeners on unmount
-    return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate);
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+  const { count } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,9 +56,9 @@ export default function Navbar() {
           </button>
           <Link href="/cart" className="relative group p-1 hover:bg-gray-100 rounded transition" aria-label="Cart">
             <svg width="22" height="22" fill="none" stroke="black" strokeWidth="1.5" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1" /><circle cx="17" cy="20" r="1" /><path d="M3 4h2l.4 2M7 13h10l4-8H5.4" /></svg>
-            {cartItems.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#d4b572] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                {cartItems.reduce((total, item) => total + item.quantity, 0)}
+            {count > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[#d4b572] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold border-2 border-white">
+                {count}
               </span>
             )}
           </Link>
@@ -117,10 +87,10 @@ export default function Navbar() {
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50 animate-fade-in py-2">
                   <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                    <span className="block text-xs text-gray-500 mb-1">Role</span>
-                    <span className={`inline-block px-2 py-1 rounded text-xs font-semibold capitalize ${role === 'admin' ? 'bg-red-100 text-red-700' : role === 'vendor' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{role}</span>
+                    <span className="block text-xs text-gray-500 mb-1">Roles</span>
+                    <span className={`inline-block px-2 py-1 rounded text-xs font-semibold capitalize ${Array.isArray(roles) && roles.includes('admin') ? 'bg-red-100 text-red-700' : Array.isArray(roles) && roles.includes('vendor') ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{Array.isArray(roles) && roles.length > 0 ? roles.join(', ') : 'buyer'}</span>
                   </div>
-                  {role === 'admin' && (
+                  {roles.includes('admin') && (
                     <Link
                       href="/dashboard/admin"
                       className="block w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded"
@@ -129,7 +99,7 @@ export default function Navbar() {
                       Admin Dashboard
                     </Link>
                   )}
-                  {role === 'vendor' && (
+                  {roles.includes('vendor') && (
                     <Link
                       href="/dashboard/vendor"
                       className="block w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded"
@@ -138,18 +108,9 @@ export default function Navbar() {
                       Vendor Dashboard
                     </Link>
                   )}
-                  {role === 'admin' && (
+                  {(roles.includes('buyer') || roles.length === 0) && (
                     <Link
-                      href="/dashboard/admin"
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      Admin Dashboard
-                    </Link>
-                  )}
-                  {(role === 'buyer' || !role) && (
-                    <Link
-                      href="/dashboard/user"
+                      href="/dashboard/buyer"
                       className="block w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded"
                       onClick={() => setShowUserMenu(false)}
                     >
@@ -204,7 +165,7 @@ export default function Navbar() {
             </button>
             <h2 className="text-lg font-bold mb-4 text-black">MENU</h2>
             <nav className="flex flex-col gap-4">
-              {[{ label: "About", href: "/about" }, { label: "Login", href: "/login" }].map(({ label, href }, idx) => (
+              {[{ label: "About", href: "/about" }, { label: "Shop", href: "/shop" }, { label: "Login", href: "/login" }].map(({ label, href }, idx) => (
                 <a
                   key={label + '-' + idx}
                   href={href}

@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 
 export default function RootLayout({
   children,
@@ -41,9 +42,11 @@ export default function RootLayout({
           .font-sans { font-family: 'Inter', sans-serif !important; }
         `}</style>
         <AuthProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <CartProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

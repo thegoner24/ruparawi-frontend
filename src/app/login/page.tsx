@@ -36,13 +36,42 @@ export default function LoginPage() {
           (userObj.first_name || userObj.firstName || "") +
           ((userObj.last_name || userObj.lastName) ? " " + (userObj.last_name || userObj.lastName) : "");
         const userInfo = { name, username, avatar };
-        const validRoles = ['admin', 'buyer', 'vendor'];
-        let role: 'admin' | 'buyer' | 'vendor' = 'buyer';
-        if (userObj.role && validRoles.includes(userObj.role)) {
-          role = userObj.role;
+        // Handle multiple roles
+        let roles: string[] = [];
+        if (Array.isArray(userObj.roles)) {
+          // If roles is an array of objects (e.g., [{ role: 'admin' }, ...]), extract the role strings
+          if (userObj.roles.length > 0 && typeof userObj.roles[0] === 'object' && userObj.roles[0] !== null && 'role' in userObj.roles[0]) {
+            roles = userObj.roles.map((r: any) => r.role).filter((r: any) => typeof r === 'string');
+          } else {
+            roles = userObj.roles;
+          }
+        } else if (userObj.role) {
+          roles = [userObj.role];
         }
-        setAuth(result.token ?? '', role, userInfo);
-        router.push('/shop');
+        // Fetch user profile with roles from /auth/me
+        const profileResult = await AuthController.getUserProfileWithRoles();
+        let profileRoles: string[] = [];
+
+        const nestedUser = profileResult.user?.user;
+
+        if (
+          profileResult.success &&
+          nestedUser &&
+          Array.isArray(nestedUser.role)
+        ) {
+          profileRoles = nestedUser.role
+            .map((r: any) => r.name)
+            .filter((name: any) => typeof name === 'string');
+        }
+        if (result.access_token) {
+          localStorage.setItem('authToken', result.access_token);
+        }
+        setAuth(result.access_token ?? '', profileRoles as ('admin'|'buyer'|'vendor')[], userInfo);
+        // Wait for the token to be set before navigating (guarantee async storage)
+        setTimeout(() => {
+          router.push('/shop');
+        }, 100);
+
       } else {
         // Display error message
         setError(result.message);
@@ -81,13 +110,13 @@ export default function LoginPage() {
   return (
     <main className="flex h-screen bg-white overflow-hidden">
       {/* Left image section (carousel) */}
-      <motion.div
-        initial={{ opacity: 0, x: -100, scale: 0.96, filter: 'blur(8px)' }}
-        animate={{ opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' }}
-        transition={{ duration: 1.3, ease: [0.4, 0, 0.2, 1] }}
-        className="hidden md:flex flex-1 items-center justify-center bg-gray-50 overflow-hidden relative shadow-[0_8px_32px_0_rgba(232,216,185,0.15)] border-r border-[#e8d8b9]"
-        style={{ boxShadow: '0 8px 32px 0 #e8d8b9, 0 1.5px 12px 0 #fffbe6' }}
-      >
+      <div style={{ boxShadow: '0 8px 32px 0 #e8d8b9, 0 1.5px 12px 0 #fffbe6' }}>
+        <motion.div
+          initial={{ opacity: 0, x: -100, scale: 0.96, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' }}
+          transition={{ duration: 1.3, ease: [0.4, 0, 0.2, 1] }}
+          className="hidden md:flex flex-1 items-center justify-center bg-gray-50 overflow-hidden relative shadow-[0_8px_32px_0_rgba(232,216,185,0.15)] border-r border-[#e8d8b9]"
+        >
         {/* Previous image (fading out) */}
         {fade ? (
           <>
@@ -132,6 +161,7 @@ export default function LoginPage() {
           ))}
         </div>
       </motion.div>
+      </div>
       {/* Right form section */}
       <motion.div
         initial={{ opacity: 0, x: 80 }}
