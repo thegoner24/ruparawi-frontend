@@ -141,8 +141,8 @@ export default function ArticlesPage() {
           onChange={e => setTag(e.target.value || null)}
         >
           <option value="">All Tags</option>
-          {allTags.map(t => (
-            <option key={t} value={t}>{t}</option>
+          {allTags.map((t, idx) => (
+            <option key={t || idx} value={t}>{t}</option>
           ))}
         </select>
         <select
@@ -168,8 +168,8 @@ export default function ArticlesPage() {
                 <img src={article.image || article.image_url} alt={article.title} className="w-full md:w-48 h-40 object-cover bg-gray-100" />
                 <div className="flex-1 p-4">
                   <div className="flex gap-2 mb-2 flex-wrap">
-                    {article.tags?.map((t: string) => (
-                      <span key={t} className="bg-pink-100 text-pink-700 text-xs px-2 py-1 rounded font-semibold">{t}</span>
+                    {article.tags?.map((t: string, idx: number) => (
+                      <span key={t + idx} className="bg-pink-100 text-pink-700 text-xs px-2 py-1 rounded font-semibold">{t}</span>
                     ))}
                   </div>
                   <div className="font-bold text-lg mb-1 group-hover:text-pink-700 transition-colors">{article.title}</div>

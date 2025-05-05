@@ -1,11 +1,13 @@
 "use client";
 import React from "react";
+import type { Article } from "./api";
 
 interface DeleteArticleModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
   loading?: boolean;
+  article: Article;
   articleTitle?: string;
   error?: string | null;
 }

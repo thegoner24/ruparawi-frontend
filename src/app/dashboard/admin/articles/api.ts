@@ -1,5 +1,22 @@
 import { API_BASE_URL } from "@/app/controllers/authController";
 
+export interface ApidogModel {
+  article: Article;
+  message: string;
+  success: boolean;
+  [property: string]: any;
+}
+
+export interface Article {
+  author_id: number;
+  content: string;
+  created_at: string;
+  id: number;
+  title: string;
+  updated_at: string;
+  [property: string]: any;
+}
+
 export async function fetchArticles() {
   const token = localStorage.getItem("authToken");
   const headers: HeadersInit = token ? { "Authorization": `Bearer ${token}` } : {};
