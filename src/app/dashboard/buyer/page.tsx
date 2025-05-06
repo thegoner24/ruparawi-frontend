@@ -30,6 +30,13 @@ const stats = [
     href: "/dashboard/buyer/notifications",
     color: "bg-purple-100"
   },
+  {
+    label: "Become a Vendor",
+    value: '',
+    icon: <FaUser className="text-3xl text-yellow-600" />,
+    href: "/vendor-apply",
+    color: "bg-yellow-50 border border-yellow-200 hover:bg-yellow-100"
+  },
 ];
 
 const recentActivity = [
