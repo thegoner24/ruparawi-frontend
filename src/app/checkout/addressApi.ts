@@ -1,15 +1,15 @@
 import { API_BASE_URL, AuthController } from "@/app/controllers/authController";
 
 export interface Address {
-  id: number;
-  label?: string;
-  recipient_name?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  postal_code?: string;
-  [key: string]: any;
+  address_line1: string;
+  city: string;
+  country: string;
+  is_default: boolean;
+  postal_code: string;
+  state: string;
+  [property: string]: any;
 }
+
 
 export async function addUserAddress(address: Partial<Address>): Promise<Address> {
   const token = AuthController.getToken?.() || null;
