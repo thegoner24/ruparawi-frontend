@@ -21,7 +21,6 @@ function safeString(val: string | null | undefined): string {
   return typeof val === 'string' ? val : '';
 }
 
-
 // Type for editing form (includes password, which is not in UserProfile)
 type UserProfileEditForm = {
   bio: string;
@@ -199,38 +198,38 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-lg shadow p-8 mt-6">
-      <h2 className="text-2xl font-bold mb-6">Profile</h2>
+    <div className="max-w-xl mx-auto bg-white rounded-lg shadow p-8 mt-6 text-center">
+      <h2 className="text-2xl font-extrabold mb-6 text-[#d4b572] text-center">Profile</h2>
       {loading ? (
-        <div className="text-center text-gray-400 py-8">Loading profile...</div>
+        <div className="text-center text-[#d4b572]400 py-8">Loading profile...</div>
       ) : error ? (
-        <div className="text-center text-red-500 py-8">{error}</div>
+        <div className="text-center text-[#d4b572]600 py-8">{error}</div>
       ) : profile ? (
-        <div className="flex flex-col items-center gap-4 w-full">
+        <div className="flex flex-col items-center justify-center gap-4 w-full text-center">
           <img
             src={(profile.profile_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent((profile.first_name || '') + ' ' + (profile.last_name || ''))}`) as string}
             alt="Avatar"
-            className="w-24 h-24 rounded-full border-4 border-pink-200 object-cover shadow"
+            className="w-24 h-24 rounded-full border-4 border-[#d4b572]200 object-cover shadow"
           />
           {!editMode ? (
             <>
-              <div className="text-xl font-semibold">{safeString(profile.first_name)} {safeString(profile.last_name)}</div>
-              <div className="text-gray-600">@{profile.username}</div>
-              <div className="flex flex-col gap-1 w-full max-w-md">
-                <div><span className="font-medium">Email:</span> {profile.email || <span className="text-gray-400">N/A</span>}</div>
+              <div className="text-xl font-extrabold text-center">{safeString(profile.first_name)} {safeString(profile.last_name)}</div>
+              <div className="text-[#d4b572]600">@{profile.username}</div>
+              <div className="flex flex-col gap-1 w-full max-w-md text-center mx-auto">
+                <div><span className="font-medium">Email:</span> {profile.email || <span className="text-[#d4b572]400">N/A</span>}</div>
                 <div><span className="font-medium">Bio:</span> {safeString(profile.bio)}</div>
-                <div><span className="font-medium">Last Login:</span> {profile.last_login ? new Date(profile.last_login).toLocaleString() : <span className="text-gray-400">N/A</span>}</div>
+                <div><span className="font-medium">Last Login:</span> {profile.last_login ? new Date(profile.last_login).toLocaleString() : <span className="text-[#d4b572]400">N/A</span>}</div>
               </div>
-              <div className="flex flex-col items-center gap-1 mt-2">
-                <div className="text-gray-400 text-sm">Joined: {new Date(profile.created_at).toLocaleDateString()}</div>
+              <div className="flex flex-col items-center justify-center gap-1 mt-2 text-center">
+                <div className="text-[#d4b572]400 text-sm text-center">Joined: {new Date(profile.created_at).toLocaleDateString()}</div>
                 {profile.role && profile.role.length > 0 && (
-                  <div className="text-xs text-pink-700 bg-pink-100 rounded px-2 py-1 mt-1">
+                  <div className="text-xs text-[#d4b572]700 bg-[#d4b572]100 rounded px-2 py-1 mt-1 text-center">
                     Roles: {profile.role.map((r: { name: string }) => r.name).join(', ')}
                   </div>
                 )}
               </div>
               <button
-                className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700 transition"
+                className="mt-4 px-5 py-2.5 rounded-full bg-[#d4b572] text-white font-extrabold shadow-gold-sm text-lg transition-all duration-150 hover:scale-105 hover:brightness-110 focus:scale-105 focus:brightness-110"
                 onClick={() => setEditMode(true)}
               >Edit Profile</button>
               {updateSuccess && <div className="text-green-600 mt-2">{updateSuccess}</div>}
@@ -246,7 +245,7 @@ const ProfilePage: React.FC = () => {
                     name="first_name"
                     value={form.first_name ?? ''}
                     onChange={handleChange}
-                    className="w-full px-2 py-1 border rounded"
+                    className="w-full px-2 py-1 border border-[#d4b572]200 rounded focus:border-[#d4b572]400 focus:ring-[#d4b572]400"
                   />
                 </div>
                 <div className="w-1/2">
@@ -256,7 +255,7 @@ const ProfilePage: React.FC = () => {
                     name="last_name"
                     value={form.last_name ?? ''}
                     onChange={handleChange}
-                    className="w-full px-2 py-1 border rounded"
+                    className="w-full px-2 py-1 border border-[#d4b572]200 rounded focus:border-[#d4b572]400 focus:ring-[#d4b572]400"
                   />
                 </div>
               </div>
@@ -266,7 +265,7 @@ const ProfilePage: React.FC = () => {
                   name="bio"
                   value={form.bio ?? ''}
                   onChange={handleChange}
-                  className="w-full px-2 py-1 border rounded"
+                  className="w-full px-2 py-1 border border-[#d4b572]200 rounded focus:border-[#d4b572]400 focus:ring-[#d4b572]400"
                   rows={3}
                 />
               </div>
@@ -277,29 +276,29 @@ const ProfilePage: React.FC = () => {
                   name="profile_image_url"
                   value={form.profile_image_url ?? ''}
                   onChange={handleChange}
-                  className="w-full px-2 py-1 border rounded"
+                  className="w-full px-2 py-1 border border-[#d4b572]200 rounded focus:border-[#d4b572]400 focus:ring-[#d4b572]400"
                 />
               </div>
               <div>
-                <label className="font-medium">Password <span className="text-gray-400 text-xs">(leave blank to keep current)</span></label>
+                <label className="font-medium">Password <span className="text-[#d4b572]400 text-xs">(leave blank to keep current)</span></label>
                 <input
                   type="password"
                   name="password"
                   value={form.password ?? ''}
                   onChange={handleChange}
-                  className="w-full px-2 py-1 border rounded"
+                  className="w-full px-2 py-1 border border-[#d4b572]200 rounded focus:border-[#d4b572]400 focus:ring-[#d4b572]400"
                   autoComplete="new-password"
                 />
               </div>
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-2 justify-center">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700 transition disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-full bg-[#d4b572] text-white font-extrabold shadow-gold-sm text-lg transition-all duration-150 hover:scale-105 hover:brightness-110 focus:scale-105 focus:brightness-110 disabled:opacity-60"
                   disabled={updating}
                 >{updating ? 'Saving...' : 'Save'}</button>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
+                  className="px-5 py-2.5 rounded-full border-2 border-[#d4b572] text-[#d4b572] font-extrabold bg-white shadow-gold-sm text-lg transition-all duration-150 hover:bg-[#fffbe6] hover:scale-105 focus:scale-105 disabled:opacity-60"
                   onClick={handleCancel}
                   disabled={updating}
                 >Cancel</button>
@@ -310,7 +309,7 @@ const ProfilePage: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="text-center text-gray-400 py-8">No profile data found.</div>
+        <div className="text-center text-[#d4b572]400 py-8">No profile data found.</div>
       )}
     </div>
   );

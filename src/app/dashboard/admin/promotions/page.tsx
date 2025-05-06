@@ -76,12 +76,12 @@ export default function AdminPromotions() {
           <option value="inactive">Inactive</option>
         </select>
       </div>
-      <h1 className="text-2xl font-bold mb-4 text-pink-700">Promotion Management</h1>
+      <h1 className="text-[#b49a4d] font-extrabold underline shadow-gold-sm hover:text-[#d4b572] transition">Promotions Management</h1>
       <div className="bg-white rounded-xl shadow p-6">
         <div className="flex justify-between items-center mb-4">
           <span className="font-semibold text-lg">Available Promotions</span>
           <button
-            className="px-4 py-2 rounded bg-pink-600 text-white"
+            className="px-4 py-2 rounded bg-[#d4b572] text-white"
             onClick={() => { setModalOpen(true); setEditPromotion(null); }}
           >
             Add Promotion
@@ -97,7 +97,7 @@ export default function AdminPromotions() {
           <>
           <table className="w-full bg-white rounded-xl shadow overflow-hidden">
             <thead>
-              <tr className="bg-pink-50">
+              <tr className="bg-[#fffbe6]">
                 <th className="p-3 text-left">Title</th>
                 <th className="p-3 text-left">Promo Code</th>
                 <th className="p-3 text-left">Discount Value</th>

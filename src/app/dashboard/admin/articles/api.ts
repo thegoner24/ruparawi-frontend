@@ -1,5 +1,23 @@
 import { API_BASE_URL } from "@/app/controllers/authController";
 
+export interface ApidogModel {
+  article: Article;
+  message: string;
+  success: boolean;
+  [property: string]: any;
+}
+
+export interface Article {
+  author_id: number;
+  content: string;
+  created_at: string;
+  id: number;
+  title: string;
+  updated_at: string;
+  image_url: string;
+  [property: string]: any;
+}
+
 export async function fetchArticles() {
   const token = localStorage.getItem("authToken");
   const headers: HeadersInit = token ? { "Authorization": `Bearer ${token}` } : {};
@@ -52,7 +70,9 @@ export async function updateArticle(articleId: number, data: any) {
     }
   );
   if (!res.ok) throw new Error("Failed to update article");
-  return res.json();
+  const json = await res.json();
+  console.log('Update response:', json);
+  return json;
 }
 
 export async function deleteArticle(articleId: number) {

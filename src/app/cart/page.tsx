@@ -2,17 +2,20 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import CartController from "../controllers/cartController";
+import { fetchCart, updateCartItem, deleteCartItem } from "./api";
 
 // Define cart item type
 interface CartItem {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
+  product: {
+    name: string;
+    price: number;
+    image: string;
+    // add more fields if needed
+  };
+  product_id: number;
   quantity: number;
-  size?: string;
-  color?: string;
+  // size?: string;
+  // color?: string;
 }
 
 export default function CartPage() {
@@ -23,75 +26,122 @@ export default function CartPage() {
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
   const [discount, setDiscount] = useState(0);
-  
-  // Load cart items using CartController on component mount
+  const [loading, setLoading] = useState(true);
+
+  // Load cart items from backend on component mount
   useEffect(() => {
-    // Get cart items from CartController
-    const items = CartController.getItems();
-    setCartItems(items);
-    
-    // Get cart summary from CartController
-    const summary = CartController.getCartSummary();
-    setSubtotal(summary.subtotal);
-    setShipping(summary.shipping);
-    setTotal(summary.total);
-    
-    // Listen for cart updates
-    const handleCartUpdate = (event: any) => {
-      if (event.detail && event.detail.cartItems) {
-        setCartItems(event.detail.cartItems);
-        
-        // Update summary when cart changes
-        const updatedSummary = CartController.getCartSummary();
-        setSubtotal(updatedSummary.subtotal);
-        setShipping(updatedSummary.shipping);
-        setTotal(updatedSummary.total);
+    async function loadCart() {
+      setLoading(true);
+      try {
+        const data = await fetchCart();
+        setCartItems(data.cart_items || []);
+        // Compute subtotal, shipping, discount, total if not present
+        const items = data.cart_items || [];
+        const subtotal = items.reduce((sum: number, item: any) => sum + ((item.product?.price || 0) * (item.quantity || 0)), 0);
+        setSubtotal(typeof data.subtotal === 'number' ? data.subtotal : subtotal);
+        setShipping(typeof data.shipping === 'number' ? data.shipping : 0);
+        setDiscount(typeof data.discount === 'number' ? data.discount : 0);
+        setTotal(typeof data.total === 'number' ? data.total : (subtotal + 0 - 0));
+      } catch (err) {
+        // Optionally handle error
+        setCartItems([]);
+        setSubtotal(0);
+        setShipping(0);
+        setDiscount(0);
+        setTotal(0);
+      } finally {
+        setLoading(false);
       }
-    };
-    
-    window.addEventListener('cartUpdated', handleCartUpdate);
-    
-    return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate);
-    };
+    }
+    loadCart();
   }, []);
-  
-  // Handle quantity changes using CartController
-  const updateQuantity = (id: string, newQuantity: number) => {
+
+  // Handle quantity changes using backend API
+  const updateQuantity = async (product_id: number, newQuantity: number) => {
     if (newQuantity < 1) return;
-    
-    // Use CartController to update quantity
-    CartController.updateQuantity(id, newQuantity);
-  };
-  
-  // Remove item from cart using CartController
-  const removeItem = (id: string) => {
-    // Use CartController to remove item
-    CartController.removeItem(id);
-  };
-  
-  // Apply promo code using CartController
-  const applyPromoCode = () => {
-    // Use CartController to apply promo code
-    const result = CartController.applyPromoCode(promoCode);
-    
-    if (result.success) {
-      setDiscount(result.discount);
-      setPromoApplied(true);
-      setTotal(subtotal + shipping - result.discount);
-    } else {
-      setDiscount(0);
-      setPromoApplied(false);
-      alert(result.message);
+    try {
+      const item = cartItems.find(item => item.product_id === product_id);
+      if (!item) return;
+      await updateCartItem(product_id, { quantity: newQuantity });
+      // Reload cart after update
+      const data = await fetchCart();
+
+      setCartItems(data.cart_items || []);
+      const items = data.cart_items || [];
+      const subtotal = items.reduce((sum: number, item: any) => sum + ((item.product?.price || 0) * (item.quantity || 0)), 0);
+      setSubtotal(typeof data.subtotal === 'number' ? data.subtotal : subtotal);
+      setShipping(typeof data.shipping === 'number' ? data.shipping : 0);
+      setDiscount(typeof data.discount === 'number' ? data.discount : 0);
+      setTotal(typeof data.total === 'number' ? data.total : (subtotal + 0 - 0));
+    } catch (err) {
+      // Optionally handle error
     }
   };
+  
+  // Remove item from cart using backend API
+  const removeItem = async (product_id: number) => {
+    try {
+      await deleteCartItem(product_id);
+      // Reload cart after remove
+      const data = await fetchCart();
+      setCartItems(data.cart_items || []);
+      const items = data.cart_items || [];
+      const subtotal = items.reduce((sum: number, item: any) => sum + ((item.product?.price || 0) * (item.quantity || 0)), 0);
+      setSubtotal(typeof data.subtotal === 'number' ? data.subtotal : subtotal);
+      setShipping(typeof data.shipping === 'number' ? data.shipping : 0);
+      setDiscount(typeof data.discount === 'number' ? data.discount : 0);
+      setTotal(typeof data.total === 'number' ? data.total : (subtotal + 0 - 0));
+    } catch (err) {
+      // Optionally handle error
+    }
+  };
+  
+  // Promo code logic
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+
+  const applyPromoCode = async () => {
+    setPromoLoading(true);
+    setPromoMessage(null);
+    // Simulate backend promo code check
+    try {
+      // Example: WELCOME10 gives 10% off
+      if (promoCode.trim().toUpperCase() === 'WELCOME10') {
+        const discountValue = Math.round(subtotal * 0.1);
+        setDiscount(discountValue);
+        setTotal(subtotal + shipping - discountValue);
+        setPromoApplied(true);
+        setPromoMessage('Promo code applied successfully!');
+      } else {
+        setPromoMessage('Invalid promo code.');
+      }
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const removePromoCode = () => {
+    setPromoApplied(false);
+    setPromoCode('');
+    setDiscount(0);
+    setTotal(subtotal + shipping);
+    setPromoMessage(null);
+  };
+
   
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold text-black mb-8">Shopping Cart</h1>
-        
-        {cartItems.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24">
+            <svg className="animate-spin h-10 w-10 text-[#d4b572] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+            <span className="text-gray-500 text-lg">Loading your cart...</span>
+          </div>
+        ) : cartItems.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Cart Items */}
             <div className="lg:col-span-2">
@@ -113,77 +163,69 @@ export default function CartPage() {
                 </div>
                 
                 {/* Cart items */}
-                {cartItems.map((item) => (
-                  <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 py-6 border-b border-gray-200">
-                    {/* Product info */}
-                    <div className="col-span-6 flex">
-                      <div className="w-24 h-24 bg-[#f8f5f0] rounded-md overflow-hidden flex-shrink-0">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover" 
-                        />
-                      </div>
-                      <div className="ml-4 flex flex-col">
-                        <h3 className="text-base font-medium text-gray-900">{item.name}</h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {item.size && `Size: ${item.size}`}
-                          {item.size && item.color && " / "}
-                          {item.color && `Color: ${item.color}`}
-                        </p>
-                        <button 
-                          onClick={() => removeItem(item.id)}
-                          className="text-sm text-gray-500 hover:text-black mt-auto flex items-center"
-                        >
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Price */}
-                    <div className="col-span-2 flex md:block items-center">
-                      <span className="text-sm md:hidden font-medium text-gray-500 mr-2">Price:</span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {item.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })}
-                      </span>
-                    </div>
-                    
-                    {/* Quantity */}
-                    <div className="col-span-2 flex items-center">
-                      <span className="text-sm md:hidden font-medium text-gray-500 mr-2">Quantity:</span>
-                      <div className="flex items-center border border-gray-300 rounded-md">
-                        <button 
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="px-3 py-1 text-gray-600 hover:text-black"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
-                          </svg>
-                        </button>
-                        <span className="w-8 text-center">{item.quantity}</span>
-                        <button 
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="px-3 py-1 text-gray-600 hover:text-black"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Total */}
-                    <div className="col-span-2 flex md:block items-center justify-between">
-                      <span className="text-sm md:hidden font-medium text-gray-500">Total:</span>
-                      <span className="text-sm font-bold text-gray-900">
-                        {(item.price * item.quantity).toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                {cartItems.map((item, idx) => (
+  <div key={item.product_id || idx} className="grid grid-cols-1 md:grid-cols-12 gap-4 py-6 border-b border-gray-200">
+    {/* Product info */}
+    <div className="col-span-6 flex">
+      <div className="w-24 h-24 bg-[#f8f5f0] rounded-md overflow-hidden flex-shrink-0">
+        <img 
+          src={item.product?.image || "/placeholder.png"} 
+          alt={item.product?.name || "Product"} 
+          className="w-full h-full object-cover" 
+        />
+      </div>
+      <div className="ml-4 flex flex-col">
+        <h3 className="text-base font-medium text-gray-900">{item.product?.name || "No name"}</h3>
+        <button 
+          onClick={() => removeItem(item.product_id)}
+          className="text-sm text-gray-500 hover:text-black mt-auto flex items-center"
+        >
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Remove
+        </button>
+      </div>
+    </div>
+    {/* Price */}
+    <div className="col-span-2 flex md:block items-center">
+      <span className="text-sm md:hidden font-medium text-gray-500 mr-2">Price:</span>
+      <span className="text-sm font-medium text-gray-900">
+        {item.product?.price ? item.product.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }) : 'N/A'}
+      </span>
+    </div>
+    {/* Quantity */}
+    <div className="col-span-2 flex items-center">
+      <span className="text-sm md:hidden font-medium text-gray-500 mr-2">Quantity:</span>
+      <div className="flex items-center border border-gray-300 rounded-md">
+        <button 
+          onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
+          className="px-3 py-1 text-gray-600 hover:text-black"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
+          </svg>
+        </button>
+        <span className="w-8 text-center">{item.quantity}</span>
+        <button 
+          onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+          className="px-3 py-1 text-gray-600 hover:text-black"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    {/* Total */}
+    <div className="col-span-2 flex md:block items-center justify-between">
+      <span className="text-sm md:hidden font-medium text-gray-500">Total:</span>
+      <span className="text-sm font-bold text-gray-900">
+        {(item.product?.price && item.quantity) ? (item.product.price * item.quantity).toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }) : 'N/A'}
+      </span>
+    </div>
+  </div>
+))}
                 
                 {/* Continue shopping */}
                 <div className="mt-6">
@@ -251,27 +293,37 @@ export default function CartPage() {
                       placeholder="Enter code"
                       className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#d4b572] focus:border-transparent"
                     />
-                    <button
-                      onClick={applyPromoCode}
-                      disabled={promoApplied || !promoCode}
-                      className={`px-4 py-2 rounded-md ${
-                        promoApplied
-                          ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                          : 'bg-black text-white hover:bg-gray-900'
-                      }`}
-                    >
-                      {promoApplied ? 'Applied' : 'Apply'}
-                    </button>
+                    {!promoApplied ? (
+                      <button
+                        onClick={applyPromoCode}
+                        disabled={promoApplied || !promoCode || promoLoading}
+                        className={`px-4 py-2 rounded-md ${
+                          promoApplied || !promoCode || promoLoading
+                            ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                            : 'bg-black text-white hover:bg-gray-900'
+                        }`}
+                      >
+                        {promoLoading ? 'Applying...' : 'Apply'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={removePromoCode}
+                        className="px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
+                        type="button"
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
-                  {promoApplied && (
-                    <p className="text-sm text-[#d4b572] mt-1">Promo code applied successfully!</p>
+                  {promoMessage && (
+                    <p className={`text-sm mt-1 ${promoApplied ? 'text-[#d4b572]' : 'text-red-600'}`}>{promoMessage}</p>
                   )}
                 </div>
                 
                 {/* Checkout button */}
-                <button className="w-full bg-black text-white py-3 rounded-md font-medium hover:bg-gray-900 transition-colors mb-4">
+                <Link href="/checkout" className="w-full block text-center bg-black text-white py-3 rounded-md font-medium hover:bg-gray-900 transition-colors mb-4">
                   Proceed to Checkout
-                </button>
+                </Link>
                 
                 {/* Secure checkout */}
                 <div className="flex items-center justify-center text-sm text-gray-500">

@@ -338,32 +338,32 @@ export default function VendorProducts() {
           + Add Product
         </button>
       </div>
-      <div className="bg-white rounded-xl shadow p-6 overflow-x-auto w-full">
+      <div className="bg-white rounded-2xl shadow-lg p-6 mt-6 overflow-x-auto w-full border border-gray-100">
         {loading && <div className="text-gray-400 py-8 text-center">Loading products...</div>}
         {error && <div className="text-red-500 py-8 text-center">{error}</div>}
         {success && <div className="text-green-600 font-semibold mb-4">{success}</div>}
         {!loading && !error && (
-          <table className="w-full min-w-[800px]">
+          <table className="w-full min-w-[900px] text-sm">
             <thead>
-              <tr className="bg-yellow-50">
-                <th className="p-3 text-left">Image</th>
-                <th className="p-3 text-left">Name</th>
-                <th className="p-3 text-left">Description</th>
-                <th className="p-3 text-left">Category</th>
-                <th className="p-3 text-left">Price</th>
-                <th className="p-3 text-left">Stock</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Actions</th>
+              <tr className="bg-yellow-50 rounded-xl">
+                <th className="p-3 text-left font-bold text-gray-600">Image</th>
+                <th className="p-3 text-left font-bold text-gray-600">Name</th>
+                <th className="p-3 text-left font-bold text-gray-600">Description</th>
+                <th className="p-3 text-left font-bold text-gray-600">Category</th>
+                <th className="p-3 text-left font-bold text-gray-600">Price</th>
+                <th className="p-3 text-left font-bold text-gray-600">Stock</th>
+                <th className="p-3 text-left font-bold text-gray-600">Status</th>
+                <th className="p-3 text-left font-bold text-gray-600">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts().length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center text-gray-400 py-8">No products found.</td>
+                  <td colSpan={8} className="text-center text-gray-400 py-8">No products found.</td>
                 </tr>
               )}
               {filteredProducts().map((product, idx) => (
-                <tr key={`${product.id}-${idx}`} className="border-b hover:bg-yellow-50 transition">
+                <tr key={`${product.id}-${idx}`} className="border-b last:border-0 hover:bg-yellow-50 transition rounded-xl">
                   <td className="p-3">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name} className="h-12 w-12 object-cover rounded shadow border" />
@@ -398,28 +398,34 @@ export default function VendorProducts() {
                   </td>
                   <td className="p-3 flex gap-2">
                     <button
-                      className="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-3 py-1 rounded"
+                      className="flex items-center gap-1 bg-yellow-400 hover:bg-yellow-500 text-white font-semibold px-4 py-1.5 rounded-lg shadow-sm transition"
                       onClick={() => openModal("edit", product)}
                       disabled={submitting}
+                      title="Edit Product"
                     >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6 6M6 18H5a2 2 0 01-2-2v-1a2 2 0 012-2h1m12-6V5a2 2 0 00-2-2h-3.5a2 2 0 00-1.415.586l-7.5 7.5a2 2 0 000 2.828l7.5 7.5a2 2 0 002.828 0l7.5-7.5a2 2 0 000-2.828l-7.5-7.5A2 2 0 0015.5 3H19a2 2 0 012 2v3.5a2 2 0 01-.586 1.415l-7.5 7.5a2 2 0 01-2.828 0l-7.5-7.5A2 2 0 013 8.5V5a2 2 0 012-2h3.5a2 2 0 011.415.586l7.5 7.5a2 2 0 010 2.828l-7.5 7.5a2 2 0 01-2.828 0l-7.5-7.5A2 2 0 013 8.5V5a2 2 0 012-2h3.5a2 2 0 011.415.586l7.5 7.5a2 2 0 010 2.828l-7.5 7.5a2 2 0 01-2.828 0l-7.5-7.5A2 2 0 013 8.5V5a2 2 0 012-2h3.5a2 2 0 011.415.586l7.5 7.5a2 2 0 010 2.828z" /></svg>
                       Edit
                     </button>
                     <button
-                      className="bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1 rounded"
+                      className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-1.5 rounded-lg shadow-sm transition"
                       onClick={() => {
                         setDeleteId(product.id);
                         setDeleteModalOpen(true);
                       }}
                       disabled={submitting}
+                      title="Delete Product"
                     >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                       Delete
                     </button>
                     {!product.is_active && (
                       <button
-                        className="bg-green-500 hover:bg-green-600 text-white font-bold px-3 py-1 rounded"
+                        className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-1.5 rounded-lg shadow-sm transition"
                         onClick={() => handleReactivate(product.id)}
                         disabled={submitting}
+                        title="Reactivate Product"
                       >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                         Reactivate
                       </button>
                     )}

@@ -80,7 +80,7 @@ export class AuthController {
     }
   }
   
-  // Login user
+
   static async login(credentials: UserCredentials): Promise<AuthResponse> {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -99,7 +99,6 @@ export class AuthController {
         };
       }
       
-        // Store token in localStorage
       if (data.access_token) {
         localStorage.setItem('authToken', data.access_token);
       }

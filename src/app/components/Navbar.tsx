@@ -2,8 +2,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 // Using SVG directly instead of react-icons to avoid dependency issues
-import CartController from "../controllers/cartController";
 import AuthController from "../controllers/authController";
 
 // Define cart item type
@@ -24,37 +24,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  
-  // Load cart items using CartController
-  useEffect(() => {
-    // Load cart items initially
-    setCartItems(CartController.getItems());
-    
-    // Listen for cart updates from other components
-    const handleCartUpdate = (event: any) => {
-      if (event.detail && event.detail.cartItems) {
-        setCartItems(event.detail.cartItems);
-      }
-    };
-    
-    // Set up event listener
-    window.addEventListener('cartUpdated', handleCartUpdate);
-    
-    // Set up storage event listener to sync across tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'cartItems' && e.newValue) {
-        setCartItems(CartController.getItems());
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Clean up event listeners on unmount
-    return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate);
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+  const { count } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,9 +56,9 @@ export default function Navbar() {
           </button>
           <Link href="/cart" className="relative group p-1 hover:bg-gray-100 rounded transition" aria-label="Cart">
             <svg width="22" height="22" fill="none" stroke="black" strokeWidth="1.5" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1" /><circle cx="17" cy="20" r="1" /><path d="M3 4h2l.4 2M7 13h10l4-8H5.4" /></svg>
-            {cartItems.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#d4b572] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                {cartItems.reduce((total, item) => total + item.quantity, 0)}
+            {count > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[#d4b572] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold border-2 border-white">
+                {count}
               </span>
             )}
           </Link>
@@ -195,7 +165,7 @@ export default function Navbar() {
             </button>
             <h2 className="text-lg font-bold mb-4 text-black">MENU</h2>
             <nav className="flex flex-col gap-4">
-              {[{ label: "About", href: "/about" }, { label: "Shop", href: "/shop" }, { label: "Login", href: "/login" }].map(({ label, href }, idx) => (
+              {[{ label: "About", href: "/about" }, { label: "Shop", href: "/shop" }, { label: "Articles", href: "/articles" }, { label: "Login", href: "/login" }].map(({ label, href }, idx) => (
                 <a
                   key={label + '-' + idx}
                   href={href}

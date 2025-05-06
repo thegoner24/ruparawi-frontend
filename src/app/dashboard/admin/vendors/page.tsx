@@ -66,7 +66,7 @@ export default function AdminVendors() {
           <option value="rejected">Rejected</option>
         </select>
       </div>
-      <h1 className="text-2xl font-bold mb-4 text-pink-700">Vendor Management</h1>
+      <h1 className="text-[#b49a4d] font-extrabold underline shadow-gold-sm hover:text-[#d4b572] transition">Vendors Management</h1>
       <div className="bg-white rounded-xl shadow p-6">
         {loading ? (
           <div className="text-gray-400">Loading vendors...</div>
@@ -77,12 +77,12 @@ export default function AdminVendors() {
         ) : (
           <table className="w-full bg-white rounded-xl shadow overflow-hidden">
             <thead>
-              <tr className="bg-pink-50">
-                <th className="p-3 text-left">Name</th>
-                <th className="p-3 text-left">Email</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Applied At</th>
-                <th className="p-3 text-left">Actions</th>
+              <tr className="bg-[#fffbe6]">
+                <th className="p-3 text-left text-[#d4b572]">Name</th>
+                <th className="p-3 text-left text-[#d4b572]">Email</th>
+                <th className="p-3 text-left text-[#d4b572]">Status</th>
+                <th className="p-3 text-left text-[#d4b572]">Applied At</th>
+                <th className="p-3 text-left text-[#d4b572]">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -95,9 +95,9 @@ export default function AdminVendors() {
                   <td className="p-3">
                     <span className={
                       vendor.status === "approved"
-                        ? "px-2 py-1 rounded bg-green-100 text-green-700 text-xs"
+                        ? "px-2 py-1 rounded bg-[#fff7e0] text-[#d4b572] text-xs"
                         : vendor.status === "pending"
-                        ? "px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs"
+                        ? "px-2 py-1 rounded bg-[#fff7e0] text-[#d4b572] text-xs"
                         : "px-2 py-1 rounded bg-gray-200 text-gray-500 text-xs"
                     }>
                       {vendor.status.charAt(0).toUpperCase() + vendor.status.slice(1)}
@@ -106,7 +106,7 @@ export default function AdminVendors() {
                   <td className="p-3">{vendor.created_at ? new Date(vendor.created_at).toLocaleString() : '-'}</td>
                   <td className="p-3 flex gap-2">
                     {vendor.status === "pending" && (
-                      <button className="px-3 py-1 rounded bg-pink-100 hover:bg-pink-200 text-pink-600 text-sm" onClick={() => setReviewTarget(vendor)}>
+                      <button className="px-3 py-1 rounded border-[#f5e6b2] hover:bg-[#fff7e0] text-[#d4b572] text-sm" onClick={() => setReviewTarget(vendor)}>
                         Review Application
                       </button>
                     )}

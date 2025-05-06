@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import ArticleModal, { Article } from "./ArticleModal";
+import Link from "next/link";
+import ArticleModal from "./ArticleModal";
+import type { Article } from "./api";
 import DeleteArticleModal from "./DeleteArticleModal";
 import { fetchArticles, createArticle, updateArticle, deleteArticle } from "./api";
 
@@ -18,8 +20,18 @@ export default function AdminArticles() {
     setError(null);
     try {
       const data = await fetchArticles();
-      setArticles(Array.isArray(data.articles) ? data.articles : data);
+      // Support both array and single article response
+      if (Array.isArray(data.articles)) {
+        setArticles(data.articles);
+      } else if (Array.isArray(data.article)) {
+        setArticles(data.article);
+      } else if (data.article) {
+        setArticles([data.article]);
+      } else {
+        setArticles([]);
+      }
     } catch (err: any) {
+      console.error('Fetch articles error:', err);
       setError(err.message || "Failed to load articles");
     } finally {
       setLoading(false);
@@ -34,11 +46,13 @@ export default function AdminArticles() {
     setModalLoading(true);
     setModalError(null);
     try {
+      let resp;
       if (editArticle) {
-        await updateArticle(editArticle.id, data);
+        resp = await updateArticle(editArticle.id, data);
       } else {
-        await createArticle(data);
+        resp = await createArticle(data);
       }
+      if (!resp.success) throw new Error(resp.message || 'Operation failed');
       setModalOpen(false);
       setEditArticle(null);
       loadArticles();
@@ -70,7 +84,8 @@ export default function AdminArticles() {
     setDeleteLoading(true);
     setDeleteError(null);
     try {
-      await deleteArticle(deleteTarget.id);
+      const resp = await deleteArticle(deleteTarget.id);
+      if (!resp.success) throw new Error(resp.message || 'Delete failed');
       closeDeleteModal();
       loadArticles();
     } catch (err: any) {
@@ -82,42 +97,47 @@ export default function AdminArticles() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 text-pink-700">Articles Management</h1>
+      <h1 className="text-2xl font-bold mb-6 text-[#d4b572]">Articles Management</h1>
       <div className="bg-white rounded-xl shadow p-6">
         <div className="flex justify-between items-center mb-4">
           <span className="font-semibold text-lg">Articles</span>
           <button
-            className="px-4 py-2 rounded bg-pink-600 text-white"
+            className="px-4 py-2 rounded bg-[#d4b572] text-white"
             onClick={() => { setModalOpen(true); setEditArticle(null); }}
           >
             Add Article
           </button>
         </div>
-        {loading ? (
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-[#f5e6b2] text-red-700 rounded flex items-center gap-2">
+            <span className="font-bold">Error:</span> {error} <button className="ml-2 underline text-red-700" onClick={loadArticles}>Retry</button>
+          </div>
+        )}
+        {loading && !error ? (
           <div className="text-gray-400">Loading articles...</div>
-        ) : error ? (
-          <div className="text-red-500">{error} <button className="ml-2 underline" onClick={loadArticles}>Retry</button></div>
-        ) : articles.length === 0 ? (
+        ) : !error && articles.length === 0 ? (
           <div className="text-gray-400">No articles found.</div>
-        ) : (
+        ) : !error && articles.length > 0 ? (
           <table className="w-full bg-white rounded-xl shadow overflow-hidden">
             <thead>
-              <tr className="bg-pink-50">
-                <th className="p-3 text-left">Title</th>
-
-                <th className="p-3 text-left">Published At</th>
-                <th className="p-3 text-left">Actions</th>
+              <tr className="bg-[#fffbe6]">
+                <th className="py-2 px-4 text-left text-[#d4b572]">Title</th>
+                <th className="py-2 px-4 text-left text-[#d4b572]">Created</th>
+                <th className="py-2 px-4 text-left text-[#d4b572]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {articles.map(article => (
-                <tr key={article.id} className="border-b hover:bg-pink-50 transition">
-                  <td className="p-3 font-semibold text-pink-700">{article.title}</td>
-
-                  <td className="p-3">{article.published_at}</td>
-                  <td className="p-3 flex gap-2">
+                <tr key={article.id} className="border-b">
+                  <td className="py-2 px-4">
+                    <Link href={`/articles/${article.id}`} className="text-[#b49a4d] font-extrabold underline shadow-gold-sm hover:text-[#d4b572] transition">
+                      {article.title}
+                    </Link>
+                  </td>
+                  <td className="py-2 px-4 text-sm text-gray-500">{new Date(article.created_at).toLocaleString()}</td>
+                  <td className="py-2 px-4 flex gap-2">
                     <button
-                      className="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-3 py-1 rounded"
+                      className="bg-[#d4b572] hover:bg-[#fff7e0] text-white font-bold px-3 py-1 rounded"
                       onClick={() => { setModalOpen(true); setEditArticle(article); }}
                       disabled={modalLoading}
                     >
@@ -135,7 +155,7 @@ export default function AdminArticles() {
               ))}
             </tbody>
           </table>
-        )}
+        ) : null}
         <ArticleModal
           open={modalOpen}
           onClose={() => { setModalOpen(false); setEditArticle(null); setModalError(null); }}
@@ -150,6 +170,7 @@ export default function AdminArticles() {
         onClose={closeDeleteModal}
         onConfirm={handleDeleteConfirm}
         loading={deleteLoading}
+        article={deleteTarget as any}
         articleTitle={deleteTarget?.title}
         error={deleteError}
       />

@@ -2,14 +2,22 @@
 import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/app/controllers/authController";
 
-interface RecentOrder {
+export interface ApidogModel {
+  recent_orders: RecentOrder[];
+  success: boolean;
+  [property: string]: any;
+}
+
+export interface RecentOrder {
   customer: string;
+  image_url: string;
   order_date: string;
   order_id: number;
   order_status: string;
   product: string;
   qty: number;
-  total: string;
+  total: number;
+  [property: string]: any;
 }
 
 const statusStyles: Record<string, string> = {

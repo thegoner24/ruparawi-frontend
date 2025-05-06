@@ -124,20 +124,20 @@ export default function AddressPage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-2 mb-4">
-        <h2 className="text-2xl font-bold text-pink-600">My Addresses</h2>
+        <h2 className="text-2xl font-bold text-[#d4b572]">My Addresses</h2>
         <button
-          className="ml-auto px-4 py-2 rounded bg-pink-600 hover:bg-pink-700 text-white font-semibold shadow disabled:opacity-60"
+          className="ml-auto px-5 py-2.5 rounded-full bg-[#d4b572] text-white font-extrabold shadow-gold-sm text-lg transition-all duration-150 hover:scale-105 hover:brightness-110 focus:scale-105 focus:brightness-110 disabled:opacity-60"
           onClick={() => { setEditAddress(null); setShowModal(true); }}
         >
           + Add Address
         </button>
       </div>
       {loading ? (
-        <div className="text-gray-400">Loading addresses...</div>
+        <div className="text-[#d4b572]">Loading addresses...</div>
       ) : error ? (
         <div className="text-red-500">{error}</div>
       ) : addresses.length === 0 ? (
-        <div className="text-gray-400">No addresses found.</div>
+        <div className="text-[#d4b572]">No addresses found.</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {addresses.map((address) => (
@@ -174,7 +174,7 @@ export default function AddressPage() {
   );
 }
 
-function DeleteAddressModal({ address, onConfirm, onCancel, loading, error }:{
+function DeleteAddressModal({ address, onConfirm, onCancel, loading, error }: {
   address: Address,
   onConfirm: () => void,
   onCancel: () => void,
@@ -182,24 +182,23 @@ function DeleteAddressModal({ address, onConfirm, onCancel, loading, error }:{
   error: string | null
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#d4b572] bg-opacity-40 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-md space-y-4">
-        <h3 className="text-xl font-bold mb-2 text-pink-600">Delete Address</h3>
-        <div className="text-gray-700">Are you sure you want to delete this address?</div>
-        <div className="text-gray-500 text-sm">{address.address_line1}, {address.city}, {address.state}, {address.postal_code}, {address.country}</div>
+        <h3 className="text-xl font-bold mb-2 text-[#d4b572]">Delete Address</h3>
+        <div className="text-[#d4b572]">Are you sure you want to delete this address?</div>
+        <div className="text-[#d4b572] text-sm">{address.address_line1}, {address.city}, {address.state}, {address.postal_code}, {address.country}</div>
         {error && <div className="text-red-500">{error}</div>}
         <div className="flex gap-2 justify-end pt-2">
-          <button type="button" className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium" onClick={onCancel} disabled={loading}>Cancel</button>
-          <button type="button" className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white font-semibold disabled:opacity-60" onClick={onConfirm} disabled={loading}>{loading ? 'Deleting...' : 'Delete'}</button>
+          <button type="button" className="px-6 py-3 rounded-full border-2 border-[#d4b572] text-[#d4b572] font-extrabold bg-white shadow-gold-sm text-lg transition-all duration-150 hover:bg-[#fffbe6] hover:scale-105 focus:scale-105 disabled:opacity-60" onClick={onCancel} disabled={loading}>Cancel</button>
+          <button type="button" className="px-6 py-3 rounded-full bg-red-600 border-2 border-[#d4b572] text-white font-extrabold shadow-gold-sm text-lg transition-all duration-150 hover:scale-105 hover:brightness-110 focus:scale-105 focus:brightness-110 disabled:opacity-60" onClick={onConfirm} disabled={loading}>{loading ? 'Deleting...' : 'Delete'}</button>
         </div>
       </div>
     </div>
   );
 }
 
-
 // AddressModal component
-function AddressModal({ address, onSave, onClose, loading, error }:{
+function AddressModal({ address, onSave, onClose, loading, error }: {
   address: Partial<Address> | null,
   onSave: (address: Partial<Address>) => void,
   onClose: () => void,
@@ -215,21 +214,21 @@ function AddressModal({ address, onSave, onClose, loading, error }:{
     onSave(form);
   }
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#d4b572] bg-opacity-40 backdrop-blur-sm">
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg space-y-4">
-        <h3 className="text-xl font-bold mb-2 text-pink-600">{address ? 'Edit Address' : 'Add Address'}</h3>
+        <h3 className="text-xl font-bold mb-2 text-[#d4b572]">{address ? 'Edit Address' : 'Add Address'}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input name="address_line1" value={form.address_line1||''} onChange={handleChange} required placeholder="Address Line 1" className="border rounded px-3 py-2 md:col-span-2" />
-          <input name="city" value={form.city||''} onChange={handleChange} required placeholder="City" className="border rounded px-3 py-2" />
-          <input name="state" value={form.state||''} onChange={handleChange} required placeholder="State" className="border rounded px-3 py-2" />
-          <input name="postal_code" value={form.postal_code||''} onChange={handleChange} required placeholder="Postal Code" className="border rounded px-3 py-2" />
-          <input name="country" value={form.country||''} onChange={handleChange} required placeholder="Country" className="border rounded px-3 py-2" />
-          <input name="phone" value={form.phone||''} onChange={handleChange} required placeholder="Phone" className="border rounded px-3 py-2" />
+          <input name="address_line1" value={form.address_line1 || ''} onChange={handleChange} required placeholder="Address Line 1" className="border border-[#d4b572] rounded px-3 py-2 md:col-span-2 focus:ring-[#d4b572]" />
+          <input name="city" value={form.city || ''} onChange={handleChange} required placeholder="City" className="border border-[#d4b572] rounded px-3 py-2 focus:ring-[#d4b572]" />
+          <input name="state" value={form.state || ''} onChange={handleChange} required placeholder="State" className="border border-[#d4b572] rounded px-3 py-2 focus:ring-[#d4b572]" />
+          <input name="postal_code" value={form.postal_code || ''} onChange={handleChange} required placeholder="Postal Code" className="border border-[#d4b572] rounded px-3 py-2 focus:ring-[#d4b572]" />
+          <input name="country" value={form.country || ''} onChange={handleChange} required placeholder="Country" className="border border-[#d4b572] rounded px-3 py-2 focus:ring-[#d4b572]" />
+          <input name="phone" value={form.phone || ''} onChange={handleChange} required placeholder="Phone" className="border border-[#d4b572] rounded px-3 py-2 focus:ring-[#d4b572]" />
         </div>
         {error && <div className="text-red-500">{error}</div>}
         <div className="flex gap-2 justify-end pt-2">
-          <button type="button" className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium" onClick={onClose} disabled={loading}>Cancel</button>
-          <button type="submit" className="px-4 py-2 rounded bg-pink-600 hover:bg-pink-700 text-white font-semibold disabled:opacity-60" disabled={loading}>{loading ? 'Saving...' : 'Save'}</button>
+          <button type="button" className="px-6 py-3 rounded-full border-2 border-[#d4b572] text-[#d4b572] font-extrabold bg-white shadow-gold-sm text-lg transition-all duration-150 hover:bg-[#fffbe6] hover:scale-105 focus:scale-105 disabled:opacity-60" onClick={onClose} disabled={loading}>Cancel</button>
+          <button type="submit" className="px-6 py-3 rounded-full bg-[#d4b572] text-white font-extrabold shadow-gold-sm text-lg transition-all duration-150 hover:scale-105 hover:brightness-110 focus:scale-105 focus:brightness-110 disabled:opacity-60" disabled={loading}>{loading ? 'Saving...' : 'Save'}</button>
         </div>
       </form>
     </div>

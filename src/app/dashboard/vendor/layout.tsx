@@ -15,12 +15,17 @@ const vendorNav = [
 export default function VendorLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      <aside className="w-72 bg-gradient-to-b from-yellow-50 to-white border-r p-6 flex flex-col gap-6 shadow-md">
+      <aside className="w-72 bg-gradient-to-b from-white to-[#fffbe6] p-6 border-r-2 border-[#d4b572] flex flex-col gap-6 shadow-xl rounded-tr-3xl rounded-br-3xl">
+  <div className="flex items-center gap-3 mb-8">
+    <span className="text-3xl text-[#d4b572]">🏪</span>
+    <h2 className="text-2xl font-extrabold text-[#d4b572] tracking-tight">Vendor</h2>
+  </div>
+  <div className="uppercase text-xs text-gray-400 font-bold mb-2 px-2 tracking-widest">Navigation</div>
         <div className="flex items-center gap-3 mb-6">
-          <FaTachometerAlt className="text-yellow-600 font-bold text-3xl" />
-          <h2 className="text-2xl font-extrabold text-yellow-600 font-bold tracking-tight">Vendor Dashboard</h2>
+          <FaTachometerAlt className="text-[#d4b572] text-3xl" />
+          <h2 className="text-2xl font-extrabold text-[#d4b572] tracking-tight">Vendor Dashboard</h2>
         </div>
-        <nav className="flex flex-col gap-6">
+        <nav className="flex flex-col gap-2">
           {vendorNav.map((section) => (
             <div key={section.section}>
               <div className="uppercase text-xs text-gray-400 font-bold mb-2 px-2 tracking-widest">{section.section}</div>
@@ -29,7 +34,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-yellow-100 text-yellow-700 font-bold font-medium transition-colors"
+                    className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-[#fff7e0] hover:scale-[1.04] transition-all duration-150 text-[#d4b572] font-extrabold shadow-gold-sm border-l-4 border-transparent hover:border-[#d4b572] focus:border-[#d4b572]"
                   >
                     <span className="text-lg">{item.icon}</span> {item.label}
                   </Link>
@@ -39,7 +44,11 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
           ))}
         </nav>
       </aside>
-      <main className="flex-1 p-8 bg-gray-50">{children}</main>
+      <main className="flex-1 min-h-screen flex flex-col items-center justify-start bg-[#faf7ef] p-8">
+  <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl p-10 mt-6">
+    {children}
+  </div>
+</main>
     </div>
   );
 }

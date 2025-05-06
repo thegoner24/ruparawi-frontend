@@ -44,3 +44,24 @@ export async function updatePromotion(id: number, promotion: Partial<Promotion>,
   if (!res.ok) throw new Error("Failed to update promotion");
   return await res.json();
 }
+
+/**
+ * Fetch a promotion by code and check if it's active (date, usage, etc).
+ * Returns the promotion object or null if not found/active.
+ */
+export async function getActivePromotionByCode(code: string, token: string): Promise<Promotion | null> {
+  const promotions = await getPromotions(token);
+  const now = new Date();
+  const found = promotions.find(promo =>
+    (promo.promo_code || promo.code || '').toLowerCase() === code.toLowerCase()
+  );
+  if (!found) return null;
+  // Date check
+  const start = found.start_date ? new Date(found.start_date) : null;
+  const end = found.end_date ? new Date(found.end_date) : null;
+  if ((start && now < start) || (end && now > end)) return null;
+  // Usage limit check (if present)
+  if (found.usage_limit && found.usage_count && found.usage_count >= found.usage_limit) return null;
+  return found;
+}
+
