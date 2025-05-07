@@ -21,6 +21,7 @@ export default function PaymentMethodsPage() {
   });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
     loadMethods();
@@ -38,9 +39,13 @@ export default function PaymentMethodsPage() {
     }
   }
 
-  function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
-    const { name, type, value, checked } = e.target;
-    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+  function handleInput(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+    const { name, type, value } = e.target;
+    let fieldValue: string | boolean = value;
+    if (type === "checkbox" && e.target instanceof HTMLInputElement) {
+      fieldValue = e.target.checked;
+    }
+    setForm({ ...form, [name]: fieldValue });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -67,6 +72,7 @@ export default function PaymentMethodsPage() {
       }
       setForm({ payment_type: "", provider: "", account_number: "", expiry_date: "", is_default: false });
       setEditingId(null);
+      setShowAddForm(false);
       await loadMethods();
     } catch (err: any) {
       setError(err?.message || "Failed to save payment method");
@@ -97,6 +103,7 @@ export default function PaymentMethodsPage() {
   function handleCancel() {
     setForm({ payment_type: "", provider: "", account_number: "", expiry_date: "", is_default: false });
     setEditingId(null);
+    setShowAddForm(false);
   }
 
   return (
@@ -124,75 +131,88 @@ export default function PaymentMethodsPage() {
               </li>
             ))}
           </ul>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <h3 className="text-lg font-extrabold text-[#d4b572] mb-2">{editingId ? "Edit Payment Method" : "Add Payment Method"}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="payment_type"
-                placeholder="Payment Type (e.g., Credit Card, Bank)"
-                className="border rounded px-3 py-2 focus:border-[#d4b572] focus:ring-[#d4b572]"
-                value={form.payment_type || ""}
-                onChange={handleInput}
-                required
-              />
-              <input
-                type="text"
-                name="provider"
-                placeholder="Provider (e.g., BCA, Visa)"
-                className="border rounded px-3 py-2 focus:border-[#d4b572] focus:ring-[#d4b572]"
-                value={form.provider || ""}
-                onChange={handleInput}
-                required
-              />
-              <input
-                type="text"
-                name="account_number"
-                placeholder="Account Number"
-                className="border rounded px-3 py-2 focus:border-[#d4b572] focus:ring-[#d4b572]"
-                value={form.account_number || ""}
-                onChange={handleInput}
-                required
-              />
-              <input
-                type="text"
-                name="expiry_date"
-                placeholder="Expiry Date (e.g., 12/2025)"
-                className="border rounded px-3 py-2 focus:border-[#d4b572] focus:ring-[#d4b572]"
-                value={form.expiry_date || ""}
-                onChange={handleInput}
-                required
-              />
-              <label className="flex items-center gap-2 col-span-2">
-                <input
-                  type="checkbox"
-                  name="is_default"
-                  checked={!!form.is_default}
+          {(!editingId && !showAddForm) && (
+            <button
+              type="button"
+              className="px-6 py-2 rounded-full bg-[#d4b572] text-white font-extrabold shadow-gold-sm text-lg mb-4 hover:scale-105 hover:brightness-110 focus:scale-105 focus:brightness-110 transition-all"
+              onClick={() => setShowAddForm(true)}
+            >
+              + Add Payment Method
+            </button>
+          )}
+          {(editingId || showAddForm) && (
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <h3 className="text-lg font-extrabold text-[#d4b572] mb-2">{editingId ? "Edit Payment Method" : "Add Payment Method"}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <select
+                  name="payment_type"
+                  className="border rounded px-3 py-2 focus:border-[#d4b572] focus:ring-[#d4b572]"
+                  value={form.payment_type || ""}
                   onChange={handleInput}
+                  required
+                >
+                  <option value="">Select Payment Type</option>
+                  <option value="debit card">Debit card</option>
+                  <option value="credit card">Credit card</option>
+                </select>
+                <input
+                  type="text"
+                  name="provider"
+                  placeholder="Provider (e.g., BCA, Visa)"
+                  className="border rounded px-3 py-2 focus:border-[#d4b572] focus:ring-[#d4b572]"
+                  value={form.provider || ""}
+                  onChange={handleInput}
+                  required
                 />
-                <span>Set as default payment method</span>
-              </label>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="px-5 py-2.5 rounded-full bg-[#d4b572] text-white font-extrabold shadow-gold-sm text-lg transition-all duration-150 hover:scale-105 hover:brightness-110 focus:scale-105 focus:brightness-110 disabled:opacity-60"
-                disabled={submitting}
-              >
-                {submitting ? (editingId ? "Saving..." : "Adding...") : (editingId ? "Save Changes" : "Add Method")}
-              </button>
-              {editingId && (
+                <input
+                  type="text"
+                  name="account_number"
+                  placeholder="Account Number"
+                  className="border rounded px-3 py-2 focus:border-[#d4b572] focus:ring-[#d4b572]"
+                  value={form.account_number || ""}
+                  onChange={handleInput}
+                  required
+                />
+                <input
+                  type="text"
+                  name="expiry_date"
+                  placeholder="Expiry Date (MM/YY)"
+                  className="border rounded px-3 py-2 focus:border-[#d4b572] focus:ring-[#d4b572]"
+                  value={form.expiry_date || ""}
+                  onChange={handleInput}
+                  required
+                />
+                <label className="flex items-center gap-2 col-span-1 md:col-span-2">
+                  <input
+                    type="checkbox"
+                    name="is_default"
+                    checked={!!form.is_default}
+                    onChange={handleInput}
+                  />
+                  Set as default payment method
+                </label>
+              </div>
+              <div className="flex gap-2 mt-4">
                 <button
-                  type="button"
-                  className="px-5 py-2.5 rounded-full border-2 border-[#d4b572] text-[#d4b572] font-extrabold bg-white shadow-gold-sm text-lg transition-all duration-150 hover:bg-[#fffbe6] hover:scale-105 focus:scale-105 disabled:opacity-60"
-                  onClick={handleCancel}
+                  type="submit"
+                  className="px-6 py-2 rounded-full bg-[#d4b572] text-white font-extrabold shadow-gold-sm text-lg hover:scale-105 hover:brightness-110 focus:scale-105 focus:brightness-110 transition-all disabled:opacity-60"
                   disabled={submitting}
                 >
-                  Cancel
+                  {submitting ? (editingId ? "Saving..." : "Adding...") : (editingId ? "Save Changes" : "Add Method")}
                 </button>
-              )}
-            </div>
-          </form>
+                {editingId && (
+                  <button
+                    type="button"
+                    className="px-5 py-2.5 rounded-full border-2 border-[#d4b572] text-[#d4b572] font-extrabold bg-white shadow-gold-sm text-lg transition-all duration-150 hover:bg-[#fffbe6] hover:scale-105 focus:scale-105 disabled:opacity-60"
+                    onClick={handleCancel}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
         </>
       )}
     </section>

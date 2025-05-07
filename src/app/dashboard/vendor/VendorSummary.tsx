@@ -45,37 +45,48 @@ export function OrderActivity({ stats }: { stats: VendorStats }) {
 import DateRangePicker from "@/app/components/ui/DateRangePicker";
 
 export function StoreStatistic({ stats, dateRange, onDateChange }: { stats: VendorStats, dateRange: { from: Date | undefined; to: Date | undefined }, onDateChange: (range: { from: Date | undefined; to: Date | undefined }) => void }) {
-  // Mock percent changes and prior period data for demo
-  const percentChange = {
-    revenue: 25.56,
-    viewed: -10.89,
-    sold: 15.24,
-  };
+  // Stat cards using real API data
   const statCards = [
     {
-      label: "Sales Potential",
-      value: `RP${Number(stats.total_revenue).toLocaleString()}`,
-      change: percentChange.revenue,
-      positive: percentChange.revenue > 0,
+      label: "Total Revenue",
+      value: `Rp${Number(stats.total_revenue).toLocaleString()}`,
     },
     {
-      label: "Products viewed",
-      value: "12,934", // Mock value
-      change: percentChange.viewed,
-      positive: percentChange.viewed > 0,
+      label: "Total Orders",
+      value: stats.total_orders,
     },
     {
-      label: "Product sold",
+      label: "Total Customers",
+      value: stats.total_customers,
+    },
+    {
+      label: "Total Sales",
       value: stats.total_sales,
-      change: percentChange.sold,
-      positive: percentChange.sold > 0,
     },
   ];
-  // Mock chart data
-  const chartData = Array.from({ length: 10 }).map((_, i) => ({
-    date: `Nov ${13 + i}`,
-    current: 20000000 + i * 2000000 + (i % 2 === 0 ? 4000000 : 0),
-    prior: 15000000 + i * 1000000,
+
+  // Prepare chart data from monthly_orders and monthly_revenue
+  // Merge by month (assuming both have month as 1-12 or as string)
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthlyOrdersMap = (stats.monthly_orders || []).reduce((acc: any, item) => {
+    if (item.month != null) acc[item.month] = item.total_orders;
+    return acc;
+  }, {});
+  const monthlyRevenueMap = (stats.monthly_revenue || []).reduce((acc: any, item) => {
+    if (item.month != null) acc[item.month] = item.total_revenue;
+    return acc;
+  }, {});
+  // Generate chart data for months present in either
+  const chartMonths = Array.from(
+    new Set([
+      ...(stats.monthly_orders || []).map(m => m.month),
+      ...(stats.monthly_revenue || []).map(m => m.month),
+    ])
+  ).filter(m => m != null).sort((a, b) => a - b);
+  const chartData = chartMonths.map(month => ({
+    date: monthNames[(month - 1) % 12],
+    orders: monthlyOrdersMap[month] || 0,
+    revenue: monthlyRevenueMap[month] || 0,
   }));
 
   return (
@@ -92,37 +103,30 @@ export function StoreStatistic({ stats, dateRange, onDateChange }: { stats: Vend
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {statCards.map((card, idx) => (
           <div key={card.label} className="bg-gray-50 rounded-xl p-5 shadow flex flex-col gap-2 border border-gray-100">
             <div className="text-2xl font-bold text-gray-800">{card.value}</div>
             <div className="text-gray-500 text-sm">{card.label}</div>
-            <div className={`text-sm font-semibold flex items-center gap-1 ${card.positive ? "text-green-600" : "text-red-500"}`}>
-              {card.positive ? (
-                <span>▲</span>
-              ) : (
-                <span>▼</span>
-              )}
-              {Math.abs(card.change)}% {card.positive ? <span className="ml-1">from last 7 days</span> : <span className="ml-1">from last 7 days</span>}
-            </div>
           </div>
         ))}
       </div>
       <div className="bg-white rounded-xl shadow border border-gray-100 p-4">
         <div className="flex justify-between items-center mb-2">
-          <div className="font-semibold text-gray-700">Sales Trend</div>
+          <div className="font-semibold text-gray-700">Monthly Orders & Revenue</div>
           <div className="flex gap-2 items-center text-xs">
-            <span className="w-3 h-3 rounded-full bg-[#4f8cff] inline-block" /> This period
-            <span className="w-3 h-3 rounded-full bg-[#b49a4d] inline-block ml-4" /> Prior period
+            <span className="w-3 h-3 rounded-full bg-[#4f8cff] inline-block" /> Orders
+            <span className="w-3 h-3 rounded-full bg-[#b49a4d] inline-block ml-4" /> Revenue
           </div>
         </div>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={chartData} margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
             <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#bdbdbd" }} />
-            <YAxis tickFormatter={v => `Rp${(v / 1e6).toFixed(0)}jt`} tick={{ fontSize: 12, fill: "#bdbdbd" }} />
-            <Tooltip formatter={(v: number) => `Rp${Number(v).toLocaleString()}`} />
-            <Bar dataKey="current" fill="#4f8cff" radius={[4, 4, 0, 0]} barSize={18} />
-            <Bar dataKey="prior" fill="#b49a4d" radius={[4, 4, 0, 0]} barSize={18} />
+            <YAxis yAxisId="left" orientation="left" tickFormatter={v => `${v}`} tick={{ fontSize: 12, fill: "#bdbdbd" }} />
+            <YAxis yAxisId="right" orientation="right" tickFormatter={v => `Rp${(v / 1e6).toFixed(0)}jt`} tick={{ fontSize: 12, fill: "#bdbdbd" }} />
+            <Tooltip formatter={(v: number, name: string) => name === 'revenue' ? `Rp${Number(v).toLocaleString()}` : v} />
+            <Bar yAxisId="left" dataKey="orders" fill="#4f8cff" radius={[4, 4, 0, 0]} barSize={18} name="Orders" />
+            <Bar yAxisId="right" dataKey="revenue" fill="#b49a4d" radius={[4, 4, 0, 0]} barSize={18} name="Revenue" />
           </BarChart>
         </ResponsiveContainer>
       </div>

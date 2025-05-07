@@ -11,6 +11,8 @@ interface PromotionModalProps {
   initial?: Partial<Promotion>;
 }
 
+import { FaPercent, FaCalendarAlt, FaBarcode, FaBoxOpen, FaImage, FaInfoCircle } from "react-icons/fa";
+
 export default function PromotionModal({ open, onClose, onSubmit, loading, error, initial }: PromotionModalProps) {
   const [title, setTitle] = useState(initial?.title || "");
   const [description, setDescription] = useState(initial?.description || "");
@@ -58,70 +60,87 @@ export default function PromotionModal({ open, onClose, onSubmit, loading, error
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative">
-        <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={onClose}>&times;</button>
-        <h2 className="text-xl font-bold mb-4">{initial ? "Edit" : "Add"} Promotion</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Required Fields Group */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-pink-50 rounded-lg p-4 mb-2">
-            <div>
-              <label className="block font-semibold mb-1">Title <span className="text-pink-600">*</span></label>
-              <input className="w-full border border-pink-300 rounded px-3 py-2 focus:ring-2 focus:ring-pink-400" value={title} onChange={e => setTitle(e.target.value)} required placeholder="e.g. Summer Sale" />
-            </div>
-            <div>
-              <label className="block font-semibold mb-1">Promo Code <span className="text-pink-600">*</span></label>
-              <input className="w-full border border-pink-300 rounded px-3 py-2 focus:ring-2 focus:ring-pink-400" value={promoCode} onChange={e => setPromoCode(e.target.value)} required placeholder="e.g. SUMMER20" />
-            </div>
-            <div>
-              <label className="block font-semibold mb-1">Discount Value <span className="text-pink-600">*</span></label>
-              <input type="number" className="w-full border border-pink-300 rounded px-3 py-2 focus:ring-2 focus:ring-pink-400" value={discountValue} onChange={e => setDiscountValue(Number(e.target.value))} min={0} required placeholder="e.g. 20" />
-            </div>
-            <div>
-              <label className="block font-semibold mb-1">Promotion Type <span className="text-pink-600">*</span></label>
-              <input className="w-full border border-pink-300 rounded px-3 py-2 focus:ring-2 focus:ring-pink-400" value={promotionType} onChange={e => setPromotionType(e.target.value)} required placeholder="e.g. percentage_discount" />
-            </div>
-            <div>
-              <label className="block font-semibold mb-1">Start Date <span className="text-pink-600">*</span></label>
-              <input type="date" className="w-full border border-pink-300 rounded px-3 py-2 focus:ring-2 focus:ring-pink-400" value={startDate} onChange={e => setStartDate(e.target.value)} required />
-            </div>
-            <div>
-              <label className="block font-semibold mb-1">End Date <span className="text-pink-600">*</span></label>
-              <input type="date" className="w-full border border-pink-300 rounded px-3 py-2 focus:ring-2 focus:ring-pink-400" value={endDate} onChange={e => setEndDate(e.target.value)} required />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block font-semibold mb-1">Product IDs (comma separated) <span className="text-pink-600">*</span></label>
-              <input className="w-full border border-pink-300 rounded px-3 py-2 focus:ring-2 focus:ring-pink-400" value={productIds} onChange={e => setProductIds(e.target.value)} required placeholder="e.g. 1,2,3" />
-              <div className="text-xs text-gray-500 mt-1">Enter product IDs separated by commas. Example: <span className="font-mono">1,2,3</span></div>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 animate-fade-in flex items-stretch justify-stretch">
+      <div className="bg-white w-full h-full max-h-screen rounded-none shadow-2xl p-0 relative flex flex-col animate-slide-up overflow-auto">
+        <button className="absolute top-4 right-6 text-gray-400 hover:text-gray-600 text-3xl z-10" onClick={onClose} aria-label="Close">&times;</button>
+        <div className="w-full max-w-4xl mx-auto p-8 flex-1 flex flex-col">
+          <h2 className="text-3xl font-extrabold mb-8 flex items-center gap-3 text-yellow-700 mt-4">
+            <FaPercent className="inline-block" style={{ color: '#FFD700' }} />
+            {initial ? "Edit" : "Add"} Promotion
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-8 flex-1 flex flex-col">
 
-          {/* Optional Fields Group */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-lg p-4">
-            <div className="md:col-span-2">
-              <label className="block font-semibold mb-1">Description</label>
-              <textarea className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-pink-200" value={description} onChange={e => setDescription(e.target.value)} placeholder="Promotion details (optional)" />
+            {/* Required Fields Group */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-yellow-50 rounded-xl p-7 mb-4 border border-yellow-200">
+              <div>
+                <label className="block font-semibold mb-1 flex items-center gap-1">Title <span className="text-yellow-700">*</span></label>
+                <input className="w-full border border-yellow-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 transition text-gray-900 bg-white placeholder-gray-400" value={title} onChange={e => setTitle(e.target.value)} required placeholder="e.g. Summer Sale" />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1 flex items-center gap-1"><FaBarcode className="" style={{ color: '#FFD700' }} /> Promo Code <span className="text-yellow-700">*</span></label>
+                <input className="w-full border border-yellow-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 transition text-gray-900 bg-white placeholder-gray-400" value={promoCode} onChange={e => setPromoCode(e.target.value)} required placeholder="e.g. SUMMER20" />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1 flex items-center gap-1"><FaPercent className="" style={{ color: '#FFD700' }} /> Discount Value <span className="text-yellow-700">*</span>
+                  <span title="Amount or percentage off" className="ml-1 text-gray-400 cursor-pointer"><FaInfoCircle /></span>
+                </label>
+                <input type="number" className="w-full border border-yellow-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 transition text-gray-900 bg-white placeholder-gray-400" value={discountValue} onChange={e => setDiscountValue(Number(e.target.value))} min={0} required placeholder="e.g. 20" />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1 flex items-center gap-1"><FaBoxOpen className="" style={{ color: '#FFD700' }} /> Promotion Type <span className="text-yellow-700">*</span>
+                  <span title="e.g. percentage_discount, fixed_amount" className="ml-1 text-gray-400 cursor-pointer"><FaInfoCircle /></span>
+                </label>
+                <input className="w-full border border-yellow-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 transition text-gray-900 bg-white placeholder-gray-400" value={promotionType} onChange={e => setPromotionType(e.target.value)} required placeholder="e.g. percentage_discount" />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1 flex items-center gap-1"><FaCalendarAlt className="" style={{ color: '#FFD700' }} /> Start Date <span className="text-yellow-700">*</span></label>
+                <input type="date" className="w-full border border-yellow-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 transition text-gray-900 bg-white placeholder-gray-400" value={startDate} onChange={e => setStartDate(e.target.value)} required />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1 flex items-center gap-1"><FaCalendarAlt className="" style={{ color: '#FFD700' }} /> End Date <span className="text-yellow-700">*</span></label>
+                <input type="date" className="w-full border border-yellow-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 transition text-gray-900 bg-white placeholder-gray-400" value={endDate} onChange={e => setEndDate(e.target.value)} required />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-semibold mb-1 flex items-center gap-1"><FaBoxOpen className="" style={{ color: '#FFD700' }} /> Product IDs (comma separated) <span className="text-yellow-700">*</span></label>
+                <input className="w-full border border-yellow-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 transition text-gray-900 bg-white placeholder-gray-400" value={productIds} onChange={e => setProductIds(e.target.value)} required placeholder="e.g. 1,2,3" />
+                <div className="text-xs text-gray-600 mt-1">Enter product IDs separated by commas. Example: <span className="font-mono">1,2,3</span></div>
+              </div>
             </div>
-            <div>
-              <label className="block font-semibold mb-1">Image URL</label>
-              <input className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-pink-200" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." />
-            </div>
-            <div>
-              <label className="block font-semibold mb-1">Max Discount</label>
-              <input type="number" className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-pink-200" value={maxDiscount} onChange={e => setMaxDiscount(e.target.value)} min={0} placeholder="e.g. 100000" />
-            </div>
-            <div>
-              <label className="block font-semibold mb-1">Usage Limit</label>
-              <input type="number" className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-pink-200" value={usageLimit} onChange={e => setUsageLimit(e.target.value)} min={0} placeholder="e.g. 10" />
-            </div>
-          </div>
 
-          {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
-          <div className="flex justify-end gap-2 mt-6">
-            <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" onClick={onClose}>Cancel</button>
-            <button type="submit" className="px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700" disabled={loading}>{loading ? "Saving..." : (initial ? "Update" : "Create")}</button>
-          </div>
-        </form>
+            {/* Optional Fields Group */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-yellow-50 rounded-xl p-5 border border-yellow-200">
+              <div className="md:col-span-2">
+                <label className="block font-semibold mb-1 flex items-center gap-1">Description</label>
+                <textarea className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-200 transition text-gray-900 bg-white placeholder-gray-400" value={description} onChange={e => setDescription(e.target.value)} placeholder="Promotion details (optional)" />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1 flex items-center gap-1"><FaImage className="" style={{ color: '#FFD700' }} /> Image URL</label>
+                <input className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-200 transition text-gray-900 bg-white placeholder-gray-400" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." />
+                {imageUrl && imageUrl.startsWith('http') && (
+                  <img src={imageUrl} alt="Promotion" className="mt-2 rounded shadow max-h-24 mx-auto" style={{objectFit:'contain'}} />
+                )}
+              </div>
+              <div>
+                <label className="block font-semibold mb-1 flex items-center gap-1">Max Discount
+                  <span title="Maximum discount amount for this promo" className="ml-1 text-gray-400 cursor-pointer"><FaInfoCircle /></span>
+                </label>
+                <input type="number" className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-200 transition text-gray-900 bg-white placeholder-gray-400" value={maxDiscount} onChange={e => setMaxDiscount(e.target.value)} min={0} placeholder="e.g. 100000" />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1 flex items-center gap-1">Usage Limit
+                  <span title="How many times this promo can be used in total" className="ml-1 text-gray-400 cursor-pointer"><FaInfoCircle /></span>
+                </label>
+                <input type="number" className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-200 transition text-gray-900 bg-white placeholder-gray-400" value={usageLimit} onChange={e => setUsageLimit(e.target.value)} min={0} placeholder="e.g. 10" />
+              </div>
+            </div>
+
+            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+            <div className="flex justify-end gap-2 mt-7">
+              <button type="button" className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition" onClick={onClose}>Cancel</button>
+              <button type="submit" className="px-5 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 shadow-yellow-200 transition font-semibold" disabled={loading}>{loading ? "Saving..." : (initial ? "Update" : "Create")}</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
