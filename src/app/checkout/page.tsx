@@ -17,7 +17,7 @@ import { checkoutOrder } from "../cart/api";
 import { fetchUserAddresses, addUserAddress, Address } from "./addressApi";
 import { fetchPaymentMethods, PaymentMethod } from "./paymentMethodsApi";
 import Image from "next/image";
-import { getActivePromotionByCode, getPromotions } from "@/app/controllers/promotionController";
+import { getPublicPromotions, preCheckoutCalculation } from "@/app/controllers/promotionController";
 import { AuthController } from "@/app/controllers/authController";
 
 // Backend expects these params:
@@ -68,8 +68,7 @@ export default function CheckoutPage() {
     async function loadPromotions() {
       setLoadingPromotions(true);
       try {
-        const token = await AuthController.getToken();
-        const promos = await getPromotions(token);
+        const promos = await getPublicPromotions();
         setAvailablePromotions(promos ?? []);
       } catch (e) {
         setAvailablePromotions([]);
@@ -175,54 +174,53 @@ export default function CheckoutPage() {
   };
 
   // Promo code validation
-  const handlePromoCodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePromoCodeChange = async (e: { target: { value: string } }) => {
     const value = e.target.value;
     setPromotionCode(value);
     setPromoDetails(null);
     setPromoError(null);
+
     if (!value) {
       setPromoStatus('idle');
+      // Revert summary to no discount
+      setSummary(prev => prev ? { ...prev, discount: 0, total: prev.subtotal + prev.shipping } : prev);
       return;
     }
+
     setPromoStatus('checking');
     try {
-      const token = AuthController.getToken();
-      if (!token) {
-        setPromoStatus('invalid');
-        setPromoError('You must be logged in to use a promo code.');
-        return;
-      }
-      const promo = await getActivePromotionByCode(value, token);
-      if (promo) {
-        setPromoDetails(promo);
-        setPromoStatus('valid');
-        setPromoError(null);
-        // Optionally update summary discount here
-        setSummary((prev) => prev ? {
-          ...prev,
-          discount: promo.promo_discount ?? promo.discount ?? 0,
-          total: prev.subtotal + prev.shipping - (promo.promo_discount ?? promo.discount ?? 0)
-        } : prev);
-      } else {
-        setPromoStatus('invalid');
-        setPromoDetails(null);
-        setPromoError('Invalid or expired promo code.');
-        // Optionally reset discount
-        setSummary((prev) => prev ? {
-          ...prev,
-          discount: 0,
-          total: prev.subtotal + prev.shipping
-        } : prev);
-      }
+      // Build payload for preCheckoutCalculation
+      const payload: any = {
+        cart_items: cartItems.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          size: item.size,
+          color: item.color,
+        })),
+        ...(shippingAddressId ? { shipping_address_id: shippingAddressId } : {}),
+        ...(billingAddressId ? { billing_address_id: billingAddressId } : {}),
+        ...(paymentMethodId ? { payment_method_id: paymentMethodId } : {}),
+        ...(notes ? { notes } : {}),
+        promotion_code: value,
+      };
+      const result = await preCheckoutCalculation(payload);
+      setPromoDetails(result.promotion || null);
+// If backend provides promotion.discount and promotion.total_price, use them to update summary
+if (result.promotion && result.promotion.discount && result.promotion.total_price && summary) {
+  setSummary({
+    ...summary,
+    discount: parseInt(result.promotion.discount, 10),
+    total: parseInt(result.promotion.total_price, 10)
+  });
+} else {
+  setSummary(result.summary || null);
+}
+      setPromoStatus(result.promotion ? 'valid' : 'invalid');
+      setPromoError(result.promotion ? null : 'Invalid or expired promo code.');
     } catch (err: any) {
       setPromoStatus('invalid');
       setPromoDetails(null);
       setPromoError('Error checking promo code.');
-      setSummary((prev) => prev ? {
-        ...prev,
-        discount: 0,
-        total: prev.subtotal + prev.shipping
-      } : prev);
     }
   };
 
@@ -478,7 +476,8 @@ export default function CheckoutPage() {
       onChange={e => {
         const selected = availablePromotions.find(p => (p.promo_code || p.code || '').toLowerCase() === e.target.value.toLowerCase());
         if (selected) {
-          setPromotionCode(selected.promo_code || selected.code || '');
+          // Use synthetic event so both input/select use handlePromoCodeChange
+          handlePromoCodeChange({ target: { value: selected.promo_code || selected.code || '' } });
         }
       }}
       value=""

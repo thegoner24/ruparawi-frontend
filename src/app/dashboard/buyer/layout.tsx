@@ -30,9 +30,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard/buyer/payment-method">
             <span className="text-left px-3 py-2 rounded-lg hover:bg-[#fff7e0] hover:scale-[1.04] transition-all duration-150 block font-extrabold text-[#d4b572] shadow-gold-sm border-l-4 border-transparent hover:border-[#d4b572] focus:border-[#d4b572]">Payment Method</span>
           </Link>
-          <Link href="/dashboard/buyer/notifications">
-            <span className="text-left px-3 py-2 rounded-lg hover:bg-[#fff7e0] hover:scale-[1.04] transition-all duration-150 block font-extrabold text-[#d4b572] shadow-gold-sm border-l-4 border-transparent hover:border-[#d4b572] focus:border-[#d4b572]">Notifications</span>
-          </Link>
         </nav>
       </aside>
       {/* Main content */}
