@@ -1,3 +1,4 @@
+import PromoPopup from "./components/PromoPopup";
 import HeroBanner from "./components/HeroBanner";
 import ProductContainer from "./components/ProductContainer";
 import HighlightedProduct from "./components/HighlightedProduct";
@@ -9,6 +10,7 @@ import ArticleSection from "./components/ArticleSection";
 export default function Home() {
   return (
     <>
+      <PromoPopup />
       <HeroBanner />
       <ProductContainer />
       <HighlightedProduct

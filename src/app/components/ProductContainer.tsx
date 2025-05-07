@@ -7,7 +7,7 @@ interface Product {
   id?: number;
   name: string;
   price: number | string;
-  image_url?: string;
+  primary_image_url?: string;
   imageUrl?: string; // for compatibility
 }
 
@@ -16,8 +16,8 @@ function renderProductCard(product: Product, idx: number) {
     return (
       <Link key={product.id} href={`/shop/${product.id}`} className="flex flex-col items-stretch px-0 py-0 text-left min-h-[420px] hover:shadow-lg transition-shadow">
         <div className="w-full aspect-[4/5] flex items-end justify-center overflow-hidden bg-white group">
-          {(product.image_url || product.imageUrl) ? (
-            <img src={product.image_url || product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+          {(product.primary_image_url || product.imageUrl) ? (
+            <img src={product.primary_image_url || product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">No Image</div>
           )}
@@ -32,8 +32,8 @@ function renderProductCard(product: Product, idx: number) {
     return (
       <div key={idx} className="flex flex-col items-stretch px-0 py-0 text-left min-h-[420px]">
         <div className="w-full aspect-[4/5] flex items-end justify-center overflow-hidden bg-white group">
-          {(product.image_url || product.imageUrl) ? (
-            <img src={product.image_url || product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+          {(product.primary_image_url || product.imageUrl) ? (
+            <img src={product.primary_image_url || product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">No Image</div>
           )}
