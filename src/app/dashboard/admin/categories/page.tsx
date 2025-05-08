@@ -162,7 +162,7 @@ export default function AdminCategories() {
             <tr className="bg-[#fffbe6]">
               <th className="p-3 text-left">Name</th>
               <th className="p-3 text-left">Description</th>
-              <th className="p-3 text-left">Status</th>
+              
               <th className="p-3 text-left">Actions</th>
             </tr>
           </thead>
@@ -195,9 +195,7 @@ export default function AdminCategories() {
                     {cat.name}
                   </td>
                   <td className="p-3">{cat.description || <span className="text-gray-400">-</span>}</td>
-                  <td className="p-3">
-                    <span className="px-2 py-1 rounded bg-gray-200 text-gray-500 font-bold text-xs border border-gray-300">N/A</span>
-                  </td>
+                  
                   <td className="p-3 flex gap-2">
                     <button className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm" onClick={() => handleEdit(cat)}>Edit</button>
                     <button className="px-3 py-1 rounded bg-red-100 hover:bg-red-200 text-red-600 text-sm" onClick={() => handleDelete(cat)}>Delete</button>
@@ -212,9 +210,7 @@ export default function AdminCategories() {
                         <span className="text-xs text-gray-400">↳</span> <span className="font-medium">{sub.name}</span>
                       </td>
                       <td className="p-3">{sub.description || <span className="text-gray-400">-</span>}</td>
-                      <td className="p-3">
-                        <span className="px-2 py-1 rounded bg-gray-200 text-gray-500 font-bold text-xs border border-gray-300">N/A</span>
-                      </td>
+                      
                       <td className="p-3 flex gap-2">
                         <button className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm" onClick={() => handleEdit(sub)}>Edit</button>
                         <button className="px-3 py-1 rounded bg-red-100 hover:bg-red-200 text-red-600 text-sm" onClick={() => handleDelete(sub)}>Delete</button>

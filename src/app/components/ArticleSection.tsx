@@ -30,7 +30,7 @@ export default function ArticleSection() {
 
   return (
     <section className="w-full bg-white mt-16">
-      <div className="max-w-6xl mx-auto w-full">
+      <div className="w-full">
         {loading ? (
           <div className="py-12 text-center text-gray-400 text-lg">Loading articles...</div>
         ) : error ? (

@@ -107,6 +107,14 @@ async function handleUpdateStatus(orderNumber: string, newStatus: string) {
     alert('Order number is missing. Cannot update status.');
     return;
   }
+  const allowedStatuses = [
+    "pending", "processing", "shipped", "delivered", "cancelled", "returned", "completed"
+  ];
+  if (!allowedStatuses.includes(newStatus)) {
+    alert("Invalid status: " + newStatus);
+    setUpdatingOrderId(null);
+    return;
+  }
   console.log('Updating order status:', orderNumber, newStatus);
   setUpdatingOrderId(orderNumber);
   try {
@@ -117,10 +125,19 @@ async function handleUpdateStatus(orderNumber: string, newStatus: string) {
     };
     const res = await fetch(`${API_BASE_URL}/order/${orderNumber}`, {
       method: "PUT",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({ status: newStatus }), // match backend
     });
-    const data: UpdateOrderStatusResponse = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      data = { message: 'No JSON body returned', success: false };
+    }
+    console.log('Update response:', res, data);
     if (!res.ok || !data.success) throw new Error(data.message || "Failed to update order status");
     // Optionally update the order in state here if desired
     setStatusModal(null);
