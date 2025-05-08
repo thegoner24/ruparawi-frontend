@@ -10,6 +10,11 @@ interface CartItem {
     name: string;
     price: number;
     image: string;
+    image_url?: string;
+    images?: Array<{
+      image_url: string;
+      is_primary?: boolean;
+    }>;
     // add more fields if needed
   };
   product_id: number;
@@ -34,6 +39,15 @@ export default function CartPage() {
       setLoading(true);
       try {
         const data = await fetchCart();
+        console.log('[CartPage] Cart API response:', data);
+        if (data.cart_items && data.cart_items.length > 0) {
+          data.cart_items.forEach((item: any, idx: number) => {
+            console.log(`[CartPage] Cart item #${idx}:`, item);
+            if (item.product) {
+              console.log(`[CartPage] Cart item #${idx} product.images:`, item.product.images);
+            }
+          });
+        }
         setCartItems(data.cart_items || []);
         // Compute subtotal, shipping, discount, total if not present
         const items = data.cart_items || [];
@@ -168,14 +182,36 @@ export default function CartPage() {
     {/* Product info */}
     <div className="col-span-6 flex">
       <div className="w-24 h-24 bg-[#f8f5f0] rounded-md overflow-hidden flex-shrink-0">
-        <img 
-          src={item.product?.image || "/placeholder.png"} 
-          alt={item.product?.name || "Product"} 
-          className="w-full h-full object-cover" 
-        />
+        {(() => {
+  let displayImage = "/placeholder.png";
+  if (item.product?.image_url && /^https?:\/\//.test(item.product.image_url)) {
+    displayImage = item.product.image_url;
+  } else if (item.product?.image && /^https?:\/\//.test(item.product.image)) {
+    displayImage = item.product.image;
+  } else if (Array.isArray(item.product?.images) && item.product.images.length > 0) {
+    const primary = item.product.images.find((img: any) => img.is_primary);
+    const imgUrl = (primary ? primary.image_url : item.product.images[0].image_url);
+    if (imgUrl && /^https?:\/\//.test(imgUrl)) {
+      displayImage = imgUrl;
+    }
+  }
+  return (
+    <img
+      src={displayImage}
+      alt={item.product?.name || "Product"}
+      className="w-full h-full object-cover"
+    />
+  );
+})()}
       </div>
       <div className="ml-4 flex flex-col">
         <h3 className="text-base font-medium text-gray-900">{item.product?.name || "No name"}</h3>
+        <Link
+          href={`/product/${item.product_id}`}
+          className="inline-block text-sm text-[#d4b572] hover:text-black font-medium mt-1 mb-2 transition-colors"
+        >
+          View Details
+        </Link>
         <button 
           onClick={() => removeItem(item.product_id)}
           className="text-sm text-gray-500 hover:text-black mt-auto flex items-center"
