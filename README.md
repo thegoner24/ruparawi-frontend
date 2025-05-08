@@ -17,12 +17,25 @@ Rupa Rawi is a sustainable community market platform that empowers local artists
 ```
 /src/app
   |-- about/            # About page (mission, values, team)
-  |-- components/       # Reusable UI components (Navbar, Footer, etc)
-  |-- context/          # Auth context
-  |-- controllers/      # Logic for cart, auth, etc
+  |-- api/              # API route handlers and backend integration
+  |-- articles/         # Articles/blog section and article detail pages
+  |-- cart/             # Shopping cart page and logic
+  |-- checkout/         # Checkout flow and payment
+  |-- components/       # Reusable UI components (Navbar, Footer, Product, etc)
+  |-- context/          # React context (auth, etc)
+  |-- controllers/      # Business logic (cart, auth, etc)
+  |-- dashboard/
+      |-- admin/        # Admin dashboard pages and features
+      |-- buyer/        # Buyer dashboard and features
+      |-- vendor/       # Vendor dashboard (products, profile, orders, stats)
+  |-- hooks/            # Custom React hooks
   |-- login/            # Login page
   |-- register/         # Registration page
-  |-- shop/             # Shop and product-related pages
+  |-- services/         # Service layer for API requests
+  |-- shop/             # Shop, product detail, and product browsing
+  |-- utils/            # Utility functions
+  |-- vendor-apply/     # Vendor application flow
+  |-- vendor-products/  # Public vendor product browsing
   |-- globals.css       # Global styles (Tailwind)
   |-- layout.tsx        # Root layout (Navbar, Footer)
   |-- page.tsx          # Landing page
@@ -32,11 +45,19 @@ Rupa Rawi is a sustainable community market platform that empowers local artists
 - Modern, responsive landing page
 - Animated About page with mission, values, and team
 - User authentication (register, login, logout)
-- Product browsing & shopping cart
+- Product browsing & shopping cart (shows real product images in cart, robust fallback logic)
 - Profile and account management
 - Clean, accessible UI with smooth animations
+- Sustainability attributes, stock quantity, and minimum order quantity are always displayed if present
 
 ## 👩‍💼 Admin Features
+- Vendor dashboard with product management (add, edit, delete, activate/deactivate)
+- Product table with improved readability (image column and placeholders removed for a cleaner look)
+- Vendor management (approve, reject, suspend vendors)
+- Vendor status system: **Active** (green), **Pending** (yellow), **Rejected** (red)
+- Dashboard overview with vendor list preview
+- Admin articles section (publish, edit, manage articles)
+- Success/error notifications for admin actions
 - Vendor Management section with tabbed interface:
   - **Active Vendors:** List, view, suspend, or delete approved vendors
   - **Vendor Requests:** Review, approve, or reject pending vendor applications (bulk actions supported)
