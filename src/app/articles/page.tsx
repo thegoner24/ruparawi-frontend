@@ -8,6 +8,7 @@ export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -25,45 +26,81 @@ export default function ArticlesPage() {
     load();
   }, []);
 
-  const trending = articles[0];
-  const rest = articles.slice(1);
+  // Filter articles by search
+  const filteredArticles = articles.filter(
+    (a) =>
+      a.title.toLowerCase().includes(search.toLowerCase()) ||
+      a.content?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const trending = filteredArticles[0];
+  const rest = filteredArticles.slice(1);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* HERO */}
-      <header className="pt-10 pb-16 bg-white shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <div className="inline-block mb-4 px-4 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-semibold tracking-wider border border-yellow-200">Blog</div>
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">Insights for Building a<br />Sustainable Future</h1>
-          <p className="text-gray-500 max-w-xl mx-auto mb-6">Explore the latest articles, news, and insights to help your business achieve sustainability and compliance.</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      {/* Sticky Glassmorphic Header */}
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-gray-100 shadow-sm">
+        <div className="w-full px-8 flex flex-col md:flex-row items-center justify-between py-6 gap-4">
+          <div className="flex flex-col items-center md:items-start">
+            <div className="inline-block mb-2 px-4 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-semibold tracking-wider border border-yellow-200">Blog</div>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">Insights for Building a <span className="text-yellow-600">Sustainable Future</span></h1>
+          </div>
+          <a href="#articles" className="inline-block px-6 py-2 rounded-lg bg-yellow-500 text-white font-semibold shadow hover:bg-yellow-600 transition">Read Articles</a>
         </div>
       </header>
 
-      {/* TRENDING ARTICLE */}
-      <main className="max-w-3xl mx-auto px-4">
-        <section className="mt-12 mb-12">
+      {/* Search Bar */}
+      <div className="w-full px-8 mt-10 mb-6">
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search articles..."
+          className="w-full px-5 py-3 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition bg-white text-lg outline-none"
+        />
+      </div>
+
+      {/* Trending Article */}
+      <main id="articles" className="w-full px-8">
+        <section className="mt-10 mb-14">
           <div className="flex items-center gap-2 mb-2">
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-semibold border border-yellow-200"><svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#facc15" stroke="#fbbf24" strokeWidth="2" /></svg>Blog</span>
-            <span className="ml-2 text-xl font-semibold">Our Trending Article <span className="text-gray-300 font-light">[{articles.length}]</span></span>
+            <span className="ml-2 text-xl font-semibold">Trending <span className="text-gray-300 font-light">[{filteredArticles.length}]</span></span>
           </div>
           <hr className="mb-6" />
           {loading ? (
-            <div className="text-gray-400 py-10">Loading articles...</div>
+            <div className="animate-pulse flex flex-col md:flex-row gap-4 bg-white rounded-2xl border border-gray-100 shadow p-6">
+              <div className="bg-gray-200 h-48 w-full md:w-64 rounded-2xl" />
+              <div className="flex-1 flex flex-col justify-center gap-3">
+                <div className="bg-gray-200 h-6 w-32 rounded" />
+                <div className="bg-gray-200 h-8 w-64 rounded" />
+                <div className="bg-gray-200 h-4 w-40 rounded" />
+                <div className="bg-gray-100 h-4 w-24 rounded" />
+              </div>
+            </div>
           ) : error ? (
             <div className="text-red-500 py-10">{error}</div>
           ) : !trending ? (
             <div className="text-gray-400 py-10">No articles found.</div>
           ) : (
-            <Link href={`/articles/${trending.id}`} className="block group rounded-2xl border border-gray-100 bg-white shadow hover:shadow-lg transition overflow-hidden">
+            <Link href={`/articles/${trending.id}`} className="block group rounded-2xl border border-gray-100 bg-white shadow-lg hover:shadow-xl transition overflow-hidden">
               <div className="flex flex-col md:flex-row">
                 {trending.image_url && (
                   <div className="md:w-64 w-full h-48 md:h-auto overflow-hidden flex-shrink-0">
                     <img src={trending.image_url} alt={trending.title} className="object-cover w-full h-full rounded-t-2xl md:rounded-l-2xl md:rounded-t-none transition group-hover:scale-105 duration-300" />
                   </div>
                 )}
-                <div className="flex-1 p-6 flex flex-col justify-center">
-                  <div className="text-xs text-yellow-700 font-semibold mb-2 flex items-center gap-1"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#facc15" stroke="#fbbf24" strokeWidth="2" /></svg>Blog</div>
-                  <h2 className="text-2xl font-bold mb-2 group-hover:text-yellow-700 transition-colors">{trending.title}</h2>
+                <div className="flex-1 p-8 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 text-xs font-semibold border border-yellow-200">
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#facc15" stroke="#fbbf24" strokeWidth="2" /></svg>
+                      Trending
+                    </span>
+                    {trending.author_avatar && (
+                      <img src={trending.author_avatar} alt="avatar" className="w-7 h-7 rounded-full border border-yellow-200" />
+                    )}
+                  </div>
+                  <h2 className="text-3xl font-bold mb-2 group-hover:text-yellow-700 transition-colors">{trending.title}</h2>
                   <div className="text-gray-500 mb-3 line-clamp-2">{trending.content?.replace(/<[^>]+>/g, '').slice(0, 120)}...</div>
                   <div className="flex items-center gap-3 text-xs text-gray-400">
                     <span>By {trending.author_name || 'Unknown'}</span>
@@ -78,35 +115,38 @@ export default function ArticlesPage() {
 
         {/* REST OF ARTICLES */}
         {rest.length > 0 && (
-  <section className="w-full mb-20">
-    <div className="max-w-7xl mx-auto px-4">
-      <h3 className="text-lg font-bold mb-8 text-gray-700">More Articles</h3>
-      <div className="flex flex-col gap-12">
-        {rest.map(article => (
-          <Link key={article.id} href={`/articles/${article.id}`} className="block">
-            <div className="flex flex-col md:flex-row items-center md:items-stretch bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden w-full">
-              <div className="flex-1 flex flex-col justify-center p-8 md:pr-10">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 text-xs font-semibold border border-yellow-200">
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#facc15" stroke="#fbbf24" strokeWidth="2" /></svg>
-                    Blog
-                  </span>
-                </div>
-                <h4 className="text-2xl font-bold mb-3 text-black leading-snug">{article.title}</h4>
-                <div className="text-base text-gray-600 mb-2 line-clamp-3">{article.content?.replace(/<[^>]+>/g, '').slice(0, 120)}...</div>
-              </div>
-              {article.image_url && (
-                <div className="md:w-[340px] w-full h-56 md:h-auto flex-shrink-0 overflow-hidden flex items-center justify-center bg-gray-50">
-                  <img src={article.image_url} alt={article.title} className="object-cover w-full h-full rounded-none md:rounded-l-none md:rounded-r-2xl" />
-                </div>
-              )}
+          <section className="w-full mb-20">
+            <h3 className="text-lg font-bold mb-8 text-gray-700">More Articles</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+              {rest.map(article => (
+                <Link key={article.id} href={`/articles/${article.id}`} className="block group">
+                  <div className="flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg overflow-hidden transition-transform duration-200 group-hover:-translate-y-1">
+                    {article.image_url && (
+                      <div className="w-full h-48 overflow-hidden bg-gray-100">
+                        <img src={article.image_url} alt={article.title} className="object-cover w-full h-full transition group-hover:scale-105 duration-300" />
+                      </div>
+                    )}
+                    <div className="flex-1 flex flex-col justify-center p-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 text-xs font-semibold border border-yellow-200">
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#facc15" stroke="#fbbf24" strokeWidth="2" /></svg>
+                          Blog
+                        </span>
+                      </div>
+                      <h4 className="text-xl font-bold mb-2 text-black leading-snug group-hover:text-yellow-700 transition-colors">{article.title}</h4>
+                      <div className="text-base text-gray-600 mb-2 line-clamp-3">{article.content?.replace(/<[^>]+>/g, '').slice(0, 120)}...</div>
+                      <div className="flex items-center gap-3 text-xs text-gray-400 mt-2">
+                        <span>By {article.author_name || 'Unknown'}</span>
+                        <span>&middot;</span>
+                        <span>{new Date(article.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  </section>
-)}
+          </section>
+        )}
       </main>
     </div>
   );

@@ -21,7 +21,7 @@ export interface Article {
 export async function fetchArticles() {
   const token = localStorage.getItem("authToken");
   const headers: HeadersInit = token ? { "Authorization": `Bearer ${token}` } : {};
-  const res = await fetch(`${API_BASE_URL}/admin/article`, { headers });
+  const res = await fetch(`${API_BASE_URL}/products/article`, { headers });
   if (!res.ok) throw new Error("Failed to fetch articles");
   return res.json();
 }

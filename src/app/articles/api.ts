@@ -19,17 +19,15 @@ export interface ApidogModel {
 
 
 export async function fetchArticles() {
-  const token = localStorage.getItem("authToken");
-  const headers: HeadersInit = token ? { "Authorization": `Bearer ${token}` } : {};
-  const res = await fetch(`${API_BASE_URL}/admin/article`, { headers });
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  const res = await fetch(`${API_BASE_URL}/products/article`, { headers });
   if (!res.ok) throw new Error("Failed to fetch articles");
   return res.json(); // Returns ApidogModel
 }
 
 export async function fetchArticleById(articleId: number) {
-  const token = localStorage.getItem("authToken");
-  const headers: HeadersInit = token ? { "Authorization": `Bearer ${token}` } : {};
-  const res = await fetch(`${API_BASE_URL}/admin/article/${articleId}`, { headers });
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  const res = await fetch(`${API_BASE_URL}/products/article/${articleId}`, { headers });
   if (!res.ok) throw new Error("Failed to fetch article");
   return res.json(); // Returns ApidogModel
 }

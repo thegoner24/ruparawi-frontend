@@ -82,18 +82,21 @@ export default function RegisterPage() {
         initial={{ opacity: 0, x: -80 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 1.1, ease: [0.4, 0, 0.2, 1] }}
-        className="flex flex-1 items-center h-screen justify-center px-4 z-10"
+        className="flex flex-1 items-center h-screen justify-center px-2 sm:px-4 z-10 bg-gradient-to-br from-[#f8f5f0] to-[#ede9dd]"
       >
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1.2, delay: 0.2, ease: [0.4, 0, 0.2, 1] }}
-          className="w-full max-w-xl flex flex-col bg-white/70 backdrop-blur-lg rounded-xl border border-[#e8d8b9] p-8"
+          className="w-full max-w-xl flex flex-col bg-white/80 backdrop-blur-lg rounded-2xl border border-[#e8d8b9] shadow-2xl p-8 md:p-12"
         >
-        <h1 className="text-4xl font-normal text-black mb-12 mt-4 tracking-tight text-center">
-          Create Account
-        </h1>
-        <form className="w-full flex flex-col gap-5" onSubmit={handleRegister}>
+        {/* Logo/Brand */}
+        <div className="flex flex-col items-center mb-6">
+          <img src="/logo.png" alt="Ruparawi" className="w-16 h-16 rounded-full shadow-lg mb-2 border-2 border-[#bfa76a] bg-white" />
+          <span className="font-bold text-2xl tracking-tight text-[#bfa76a]">Ruparawi</span>
+        </div>
+        <h1 className="text-3xl font-semibold text-black mb-8 mt-2 tracking-tight text-center">Create Your Account</h1>
+        <form className="w-full flex flex-col gap-5" onSubmit={handleRegister} autoComplete="on" aria-label="Register form">
           {/* Error message */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-2">

@@ -59,6 +59,7 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
       });
   }, []);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortOption, setSortOption] = useState("featured");
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
@@ -93,7 +94,9 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
     e.preventDefault();
     e.stopPropagation();
     if (!token) {
-      alert('You must be logged in to use the wishlist.');
+      setCartMessage('You must be logged in to use the wishlist.');
+      setCartNotification(true);
+      setTimeout(() => setCartNotification(false), 3500);
       return;
     }
     try {
@@ -105,19 +108,24 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
         setWishlist(prev => [...prev, productId]);
       }
     } catch (err) {
-      alert('Failed to update wishlist.');
+      setCartMessage('Failed to update wishlist.');
+      setCartNotification(true);
+      setTimeout(() => setCartNotification(false), 3500);
       console.error(err);
     }
   };
 
-
-  // Function to close quick view modal
-  const closeQuickView = () => {
-    setQuickViewProduct(null);
-  };
-
-  // Function to add item to cart using backend API
+  // Function to add item to cart using backend API (with upgraded error handling)
   const addToCart = useCallback(async (product: Product, quantity: number = 1, size: string = "M", color: string = "Black") => {
+    if (!token) {
+      setCartMessage('You must be logged in to add items to the cart.');
+      setCartNotification(true);
+      setTimeout(() => {
+        setCartNotification(false);
+        setCartMessage(null);
+      }, 3500);
+      return;
+    }
     const payload = {
       product_id: typeof product.id === 'string' ? parseInt(product.id, 10) : product.id,
       quantity,
@@ -139,8 +147,7 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
         setCartMessage(null);
       }, 2000);
     } catch (err: any) {
-      // Try to extract backend error message
-      console.error('Add to cart error:', err);
+      console.error(err);
       if (err instanceof Error && err.message) {
         setCartMessage(err.message);
       } else {
@@ -152,15 +159,22 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
         setCartMessage(null);
       }, 3000);
     }
-  }, [refreshCart]);
+  }, [token, refreshCart]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter products by category
-  const filteredProducts = selectedCategory === "All"
-    ? products
-    : products.filter(product => product.category === selectedCategory);
+  // Function to close quick view modal
+  const closeQuickView = () => {
+    setQuickViewProduct(null);
+  };
+
+  // Filter products by search and category
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   // Sort products based on selected option
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -192,12 +206,16 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
       {error && (
         <div className="text-red-500 py-8 text-center">{error}</div>
       )}
-      {/* Cart notification */}
-      {cartNotification && cartMessage && (
-        <div className="fixed top-6 right-6 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
-          {cartMessage}
-        </div>
-      )}
+      {/* Search bar */}
+      <div className="mb-4 flex justify-center">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Search products..."
+          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-black shadow-sm"
+        />
+      </div>
       {/* Category filter and sort dropdown (single context) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex gap-2">
@@ -249,7 +267,7 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
 />
   <button
     onClick={e => handleWishlist(e, product.id)}
-    className={`absolute top-3 right-3 z-10 p-2 rounded-full shadow bg-white/80 hover:bg-[#f2e6c7] transition ${wishlist.includes(product.id) ? 'text-[#d4b572]' : 'text-gray-400'}`}
+    className={`absolute top-3 right-3 p-2 rounded-full shadow bg-white/80 hover:bg-[#f2e6c7] transition ${wishlist.includes(product.id) ? 'text-[#d4b572]' : 'text-gray-400'}`}
     aria-label="Add to wishlist"
   >
     <svg className={`w-6 h-6 ${wishlist.includes(product.id) ? 'fill-[#d4b572]' : ''}`} fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -375,6 +393,12 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
           </div>
         </div>
       )}
+    {/* Notification UI */}
+    {cartNotification && cartMessage && (
+      <div className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-center text-sm font-semibold animate-fadeIn">
+        {cartMessage}
+      </div>
+    )}
     </section>
   );
 };

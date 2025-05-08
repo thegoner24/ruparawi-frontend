@@ -110,14 +110,13 @@ export default function LoginPage() {
   return (
     <main className="flex h-screen bg-white overflow-hidden">
       {/* Left image section (carousel) */}
-      <div style={{ boxShadow: '0 8px 32px 0 #e8d8b9, 0 1.5px 12px 0 #fffbe6' }}>
-        <motion.div
-          initial={{ opacity: 0, x: -100, scale: 0.96, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' }}
-          transition={{ duration: 1.3, ease: [0.4, 0, 0.2, 1] }}
-          className="hidden md:flex flex-1 items-center justify-center bg-gray-50 overflow-hidden relative shadow-[0_8px_32px_0_rgba(232,216,185,0.15)] border-r border-[#e8d8b9]"
-        >
-        {/* Previous image (fading out) */}
+      <motion.div
+        initial={{ opacity: 0, x: -100, scale: 0.96, filter: 'blur(8px)' }}
+        animate={{ opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' }}
+        transition={{ duration: 1.3, ease: [0.4, 0, 0.2, 1] }}
+        className="hidden md:flex flex-1 items-center justify-center bg-gray-50 overflow-hidden relative shadow-[0_8px_32px_0_rgba(232,216,185,0.15)] border-r border-[#e8d8b9]"
+        style={{ boxShadow: '0 8px 32px 0 #e8d8b9, 0 1.5px 12px 0 #fffbe6' }}
+      >
         {fade ? (
           <>
             {/* Previous image (slides out left, scales down) */}
@@ -154,31 +153,33 @@ export default function LoginPage() {
           {images.map((_, idx) => (
             <span
               key={idx}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${idx === current ? 'bg-black scale-110' : 'bg-white border border-gray-400'}`}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${idx === current ? 'bg-[#bfa76a] scale-125 shadow-[0_0_8px_2px_#e8d8b9]' : 'bg-white border border-gray-400'}`}
               style={{ display: 'inline-block' }}
               aria-label={`Go to slide ${idx + 1}`}
             />
           ))}
         </div>
       </motion.div>
-      </div>
       {/* Right form section */}
       <motion.div
         initial={{ opacity: 0, x: 80 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 1.1, ease: [0.4, 0, 0.2, 1] }}
-        className="flex flex-1 items-center h-screen justify-center px-4 z-10"
+        className="flex flex-1 items-center h-screen justify-center px-2 sm:px-4 z-10 bg-gradient-to-br from-[#f8f5f0] to-[#ede9dd]"
       >
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1.2, delay: 0.2, ease: [0.4, 0, 0.2, 1] }}
-          className="w-full max-w-xl flex flex-col bg-white/70 backdrop-blur-lg rounded-xl border border-[#e8d8b9] p-8"
+          className="w-full max-w-xl flex flex-col bg-white/80 backdrop-blur-lg rounded-2xl border border-[#e8d8b9] shadow-2xl p-8 md:p-12"
         >
-          <h1 className="text-4xl font-normal text-black mb-10 mt-1 tracking-tight text-center">
-            Login
-          </h1>
-          <form className="flex flex-col gap-6" onSubmit={handleLogin}>
+          {/* Logo/Brand */}
+          <div className="flex flex-col items-center mb-6">
+            <img src="../../public/RupaRawi.png" alt="Ruparawi" className="w-16 h-16 rounded-full shadow-lg mb-2 border-2 border-[#bfa76a] bg-white" />
+            <span className="font-bold text-2xl tracking-tight text-[#bfa76a]">Ruparawi</span>
+          </div>
+          <h1 className="text-3xl font-semibold text-black mb-8 mt-2 tracking-tight text-center">Sign In to Your Account</h1>
+          <form className="flex flex-col gap-6" onSubmit={handleLogin} autoComplete="on" aria-label="Login form">
             {/* Error message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-2">
