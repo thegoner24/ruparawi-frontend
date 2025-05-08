@@ -100,13 +100,13 @@ export default function VendorProductsPage() {
                   <div className="mt-auto flex items-center justify-between pt-2">
                     <span className="text-xs text-gray-500">Stock: {product.stock ?? '-'}</span>
                     <a
-  href={`/shop/${product.id}`}
-  className="px-4 py-1 bg-[#bfa76a] text-white rounded-full text-xs font-semibold hover:bg-[#a08e5a] shadow transition text-center focus:outline-none focus:ring-2 focus:ring-[#bfa76a]"
-  tabIndex={0}
-  role="button"
->
-  View Details
-</a>
+                      href={`/shop/${product.id}`}
+                      className="px-4 py-1 bg-[#bfa76a] text-white rounded-full text-xs font-semibold hover:bg-[#a08e5a] shadow transition text-center focus:outline-none focus:ring-2 focus:ring-[#bfa76a]"
+                      tabIndex={0}
+                      role="button"
+                    >
+                      View Details
+                    </a>`
                   </div>
                 </div>
               </div>
