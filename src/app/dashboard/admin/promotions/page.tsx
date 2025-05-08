@@ -100,6 +100,7 @@ export default function AdminPromotions() {
               <tr className="bg-[#fffbe6]">
                 <th className="p-3 text-left">Title</th>
                 <th className="p-3 text-left">Promo Code</th>
+                <th className="p-3 text-left">Description</th>
                 <th className="p-3 text-left">Discount Value</th>
                 <th className="p-3 text-left">End Date</th>
                 <th className="p-3 text-left">Status</th>
@@ -111,7 +112,8 @@ export default function AdminPromotions() {
                 <tr key={promo.id} className="border-b last:border-b-0">
                   <td className="p-3 font-semibold">{promo.title}</td>
                   <td className="p-3">{promo.promo_code}</td>
-                  <td className="p-3">{promo.discount_value !== undefined ? promo.discount_value : '-'}</td>
+                  <td className="p-3">{promo.promo_description || promo.description || '-'}</td>
+                  <td className="p-3">{promo.promo_discount !== undefined ? promo.promo_discount : (promo.discount_value !== undefined ? promo.discount_value : (promo.discount || '-'))}</td>
                   <td className="p-3">{promo.end_date}</td>
                   <td className="p-3">
                     {promo.is_active ? (

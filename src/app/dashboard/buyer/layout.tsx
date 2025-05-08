@@ -32,14 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </Link>
         </nav>
       </aside>
-      {/* Main content */}
-      <main className="flex-1 min-h-screen flex flex-col items-center justify-start bg-[#faf7ef] p-8">
-  <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl p-10 mt-6">
-
-        <h1 className="text-4xl font-extrabold mb-8 text-center text-[#d4b572] tracking-wider drop-shadow-gold">Buyer Dashboard</h1>
-        {children}
-    </div>
-      </main>
+      <main className="p-6 flex-1 min-h-screen">{children}</main>
     </div>
   );
 }

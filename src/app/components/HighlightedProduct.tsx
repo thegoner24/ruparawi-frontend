@@ -6,7 +6,7 @@ interface HighlightedProductProps {
   subtitle: string;
   buttonText?: string;
   buttonHref?: string;
-}
+      }
 
 export default function HighlightedProduct({
   imageUrl,

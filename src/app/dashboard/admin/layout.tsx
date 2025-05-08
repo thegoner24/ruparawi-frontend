@@ -45,11 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     ))}
   </nav>
 </aside>
-<main className="flex-1 min-h-screen flex flex-col items-center justify-start bg-[#faf7ef] p-8">
-  <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl p-10 mt-6">
-    {children}
-  </div>
-</main>
+<main className="p-6 flex-1 min-h-screen">{children}</main>
     </div>
   );
 }
