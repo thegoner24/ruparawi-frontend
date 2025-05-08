@@ -24,6 +24,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
   const { count } = useCart();
 
   useEffect(() => {
@@ -51,9 +52,7 @@ export default function Navbar() {
 
         {/* Right Icons */}
         <div className="flex items-center gap-4">
-          <button className="p-1 rounded hover:bg-gray-100 transition" aria-label="Search">
-            <svg width="22" height="22" fill="none" stroke="black" strokeWidth="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" /></svg>
-          </button>
+
           <Link href="/cart" className="relative group p-1 hover:bg-gray-100 rounded transition" aria-label="Cart">
             <svg width="22" height="22" fill="none" stroke="black" strokeWidth="1.5" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1" /><circle cx="17" cy="20" r="1" /><path d="M3 4h2l.4 2M7 13h10l4-8H5.4" /></svg>
             {count > 0 && (
@@ -180,6 +179,8 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
+
 
       {/* Animations */}
       <style>{`
