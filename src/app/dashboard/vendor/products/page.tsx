@@ -346,7 +346,7 @@ export default function VendorProducts() {
           <table className="w-full min-w-[900px] text-sm">
             <thead>
               <tr className="bg-yellow-50 rounded-xl">
-                <th className="p-3 text-left font-bold text-gray-600">Image</th>
+                
                 <th className="p-3 text-left font-bold text-gray-600">Name</th>
                 <th className="p-3 text-left font-bold text-gray-600">Description</th>
                 <th className="p-3 text-left font-bold text-gray-600">Category</th>
@@ -364,13 +364,7 @@ export default function VendorProducts() {
               )}
               {filteredProducts().map((product, idx) => (
                 <tr key={`${product.id}-${idx}`} className="border-b last:border-0 hover:bg-yellow-50 transition rounded-xl">
-                  <td className="p-3">
-                    {product.image_url ? (
-                      <img src={product.image_url} alt={product.name} className="h-12 w-12 object-cover rounded shadow border" />
-                    ) : (
-                      <span className="text-gray-300">No Image</span>
-                    )}
-                  </td>
+                  
                   <td className="p-3 font-semibold text-yellow-700">
                     <Link
                       href={`/shop/${product.id}`}
