@@ -164,7 +164,23 @@ export default function Navbar() {
             </button>
             <h2 className="text-lg font-bold mb-4 text-black">MENU</h2>
             <nav className="flex flex-col gap-4">
-              {[{ label: "About", href: "/about" }, { label: "Shop", href: "/shop" }, { label: "Articles", href: "/articles" }, { label: "Login", href: "/login" }].map(({ label, href }, idx) => (
+              <div className="flex flex-row gap-2 mb-4" style={{ alignSelf: 'flex-start' }}>
+                <a
+                  href="/register"
+                  className="text-base font-semibold text-white bg-black rounded px-4 py-2 hover:bg-gray-800 transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Register
+                </a>
+                <a
+                  href="/login"
+                  className="text-base font-semibold text-black border border-black rounded px-4 py-2 hover:bg-gray-100 transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Login
+                </a>
+              </div>
+              {[{ label: "About", href: "/about" }, { label: "Shop", href: "/shop" }, { label: "Articles", href: "/articles" }].map(({ label, href }, idx) => (
                 <a
                   key={label + '-' + idx}
                   href={href}

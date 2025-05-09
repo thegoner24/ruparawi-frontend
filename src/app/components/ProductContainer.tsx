@@ -11,22 +11,31 @@ interface Product {
   imageUrl?: string; // for compatibility
 }
 
+function formatIDR(price: number | string) {
+  const num = typeof price === 'string' ? parseFloat(price) : price;
+  if (isNaN(num)) return price;
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+}
+
 function renderProductCard(product: Product, idx: number) {
   if (product.id) {
     return (
-      <Link key={product.id} href={`/shop/${product.id}`} className="flex flex-col items-stretch px-0 py-0 text-left min-h-[420px] hover:shadow-lg transition-shadow">
-        <div className="w-full aspect-[4/5] flex items-end justify-center overflow-hidden bg-white group">
-          {(product.primary_image_url || product.imageUrl) ? (
-            <img src={product.primary_image_url || product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">No Image</div>
-          )}
-        </div>
-        <div className="px-6 py-4">
+      <div key={product.id} className="flex flex-col items-stretch px-0 py-0 text-left min-h-[420px] hover:shadow-lg transition-shadow">
+        <Link href={`/shop/${product.id}`} className="w-full">
+          <div className="w-full aspect-[4/5] flex items-end justify-center overflow-hidden bg-white group">
+            {(product.primary_image_url || product.imageUrl) ? (
+              <img src={product.primary_image_url || product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">No Image</div>
+            )}
+          </div>
+        </Link>
+        <div className="px-6 py-4 flex flex-col gap-2 flex-1">
           <div className="font-bold text-lg text-black mb-2">{product.name}</div>
-          <div className="text-gray-700 text-base font-normal">{product.price}</div>
+          <div className="text-gray-700 text-base font-normal">{formatIDR(product.price)}</div>
+          <Link href="/shop" className="mt-2 w-fit bg-black text-white rounded-full px-4 py-2 text-sm font-semibold hover:bg-gray-900 transition self-start">Shop Now</Link>
         </div>
-      </Link>
+      </div>
     );
   } else {
     return (
@@ -90,7 +99,7 @@ export default function ProductContainer() {
             {/* Left text column */}
             <div className="flex flex-col items-center justify-center px-8 py-12 md:col-span-1 border-r border-gray-200">
               <h2 className="text-3xl font-light mb-6 text-center text-black">For Family<br />Moments<br />That Matter</h2>
-              <a href="#" className="mt-4 text-base font-medium text-black border border-black rounded-full px-6 py-2 hover:bg-black hover:text-white transition">Shop Now</a>
+              <a href="/shop" className="mt-4 text-base font-medium text-black border border-black rounded-full px-6 py-2 hover:bg-black hover:text-white transition">Shop Now</a>
             </div>
             {/* Product cards row 1 */}
             {row1.map((product, idx) => renderProductCard(product, idx))}

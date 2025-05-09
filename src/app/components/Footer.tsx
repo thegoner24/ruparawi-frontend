@@ -16,11 +16,11 @@ export default function Footer() {
         </div>
         {/* Links */}
         <div className="flex flex-col gap-2 text-center md:text-left">
-          <a href="#about" className="hover:underline">About</a>
-          <a href="#shop" className="hover:underline">Shop</a>
-          <a href="#article" className="hover:underline">Article</a>
-          <a href="#login" className="hover:underline">Login</a>
-          <a href="#register" className="hover:underline">Register</a>
+          <a href="/about" className="hover:underline">About</a>
+          <a href="/shop" className="hover:underline">Shop</a>
+          <a href="/article" className="hover:underline">Article</a>
+          <a href="/login" className="hover:underline">Login</a>
+          <a href="/register" className="hover:underline">Register</a>
         </div>
         {/* Copyright */}
         <div className="text-sm text-gray-400 text-center md:text-right mt-6 md:mt-0">

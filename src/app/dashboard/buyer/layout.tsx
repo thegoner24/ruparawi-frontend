@@ -15,6 +15,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard/buyer">
             <span className="text-left px-3 py-2 rounded-lg hover:bg-[#fff7e0] hover:scale-[1.04] transition-all duration-150 block font-extrabold text-[#d4b572] shadow-gold-sm border-l-4 border-transparent hover:border-[#d4b572] focus:border-[#d4b572]">Dashboard</span>
           </Link>
+          <Link href="/dashboard/buyer/profile">
+            <span className="text-left px-3 py-2 rounded-lg hover:bg-[#fff7e0] hover:scale-[1.04] transition-all duration-150 block font-extrabold text-[#d4b572] shadow-gold-sm border-l-4 border-transparent hover:border-[#d4b572] focus:border-[#d4b572]">Profile</span>
+          </Link>
           <Link href="/dashboard/buyer/orders">
             <span className="text-left px-3 py-2 rounded-lg hover:bg-[#fff7e0] hover:scale-[1.04] transition-all duration-150 block font-extrabold text-[#d4b572] shadow-gold-sm border-l-4 border-transparent hover:border-[#d4b572] focus:border-[#d4b572]">Orders</span>
           </Link>
@@ -23,9 +26,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </Link>
           <Link href="/dashboard/buyer/address">
             <span className="text-left px-3 py-2 rounded-lg hover:bg-[#fff7e0] hover:scale-[1.04] transition-all duration-150 block font-extrabold text-[#d4b572] shadow-gold-sm border-l-4 border-transparent hover:border-[#d4b572] focus:border-[#d4b572]">Address</span>
-          </Link>
-          <Link href="/dashboard/buyer/profile">
-            <span className="text-left px-3 py-2 rounded-lg hover:bg-[#fff7e0] hover:scale-[1.04] transition-all duration-150 block font-extrabold text-[#d4b572] shadow-gold-sm border-l-4 border-transparent hover:border-[#d4b572] focus:border-[#d4b572]">Profile</span>
           </Link>
           <Link href="/dashboard/buyer/payment-method">
             <span className="text-left px-3 py-2 rounded-lg hover:bg-[#fff7e0] hover:scale-[1.04] transition-all duration-150 block font-extrabold text-[#d4b572] shadow-gold-sm border-l-4 border-transparent hover:border-[#d4b572] focus:border-[#d4b572]">Payment Method</span>
