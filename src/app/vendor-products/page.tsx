@@ -34,7 +34,7 @@ export default function VendorProductsPage() {
     <main className="w-full bg-white min-h-screen">
       {/* Banner */}
       <div className="w-full h-[500px] md:h-80 lg:h-[500px] flex items-center justify-center overflow-hidden relative bg-gradient-to-br from-[#f8f5f0] to-[#ede9dd] mb-8">
-        <img src="https://static.vecteezy.com/system/resources/thumbnails/008/406/587/small/batik-parang-seamless-pattern-background-black-w-vector.jpg" alt="Vendor Banner" className="w-full h-full object-cover object-center opacity-90" />
+        <img src="https://www.freevector.com/uploads/vector/preview/45905/vecteezyBatikParangSeamless_PatternAP0721_generated.jpg" alt="Vendor Banner" className="w-full h-full object-cover object-center opacity-90" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <h1 className="absolute left-8 bottom-8 text-white text-3xl md:text-5xl font-bold drop-shadow-lg tracking-tight">Vendor Products</h1>
       </div>

@@ -28,37 +28,134 @@ interface Product {
   [key: string]: any;
 }
 
-interface ShopClientProps {
-  categories: string[];
+interface CategoryGroup {
+  parent: string;
+  subs: string[];
+}
+
+interface ShopClientProps {}
+
+// Define CategoryNode type for recursive category mapping
+interface CategoryNode {
+  id: string;
+  name: string;
+  subcategories?: CategoryNode[];
 }
 
 const PRODUCTS_PER_PAGE = 12;
 
-const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
+const ShopClient: React.FC<ShopClientProps> = () => {
+  const [categories, setCategories] = useState<CategoryGroup[]>([]);
   const { refreshCart } = useCart();
+  const [rawProducts, setRawProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categoriesRaw, setCategoriesRaw] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Map products with parentCategory and category (subcategory) names using category_id
   useEffect(() => {
-    console.log('Fetching products...');
-    setLoading(true);
-    setError(null);
-    fetch('https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products', { cache: 'no-store' })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch products');
-        return res.json();
-      })
-      .then(data => {
-        setProducts(data.products || data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
+    // Helper: recursively flatten all categories and subcategories
+    function flattenCategories(nodes: CategoryNode[], parentName: string | null = null): { id: string; name: string; parent: string | null }[] {
+      let result: { id: string; name: string; parent: string | null }[] = [];
+      for (const node of nodes) {
+        result.push({ id: node.id, name: node.name, parent: parentName });
+        if (node.subcategories && node.subcategories.length > 0) {
+          result = result.concat(flattenCategories(node.subcategories, node.name ?? null));
+        }
+      }
+      return result;
+    }
+
+    // Build lookup: category_id -> { sub, parent }
+    const categoryIdToNames: { [key: string]: { sub: string; parent: string } } = {};
+    if (Array.isArray(categoriesRaw) && categoriesRaw.length > 0) {
+      const categoriesFlat = flattenCategories(categoriesRaw);
+      for (const entry of categoriesFlat) {
+        categoryIdToNames[entry.id] = { sub: entry.name, parent: entry.parent || entry.name };
+      }
+    }
+
+    // Map products
+    const allProductsWithNames = rawProducts.map(product => {
+      const mapping = categoryIdToNames[product.category_id];
+      return {
+        ...product,
+        category: mapping ? mapping.sub : "Unknown",
+        parentCategory: mapping ? mapping.parent : "Other"
+      };
+    });
+    setProducts(allProductsWithNames);
+  }, [rawProducts, categoriesRaw]);
+
+
+  // Fetch categories on mount (store both raw tree and flat for UI dropdowns)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products/category', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to fetch categories');
+        const raw = await res.json();
+        const tree = raw.data.categories || [];
+        setCategoriesRaw(tree);
+        // For dropdown UI: build CategoryGroup[] (parent/sub names only, for UI compatibility)
+        const groups = tree.map((cat: any) => ({
+          parent: cat.name,
+          subs: (cat.subcategories || []).map((sub: any) => sub.name)
+        }));
+        setCategories(groups);
+      } catch (err) {
+        setCategories([]);
+        setCategoriesRaw([]);
+      }
+    };
+    fetchCategories();
   }, []);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  useEffect(() => {
+    const fetchAllProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // Fetch first page to get pagination info
+        const res = await fetch('https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products?page=1', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to fetch products');
+        const data = await res.json();
+        const { products: firstPageProducts, pagination } = data;
+        if (!pagination || !pagination.pages || pagination.pages === 1) {
+          setProducts(firstPageProducts || data.products || data);
+          setLoading(false);
+          return;
+        }
+        // Fetch all remaining pages in parallel
+        const pageFetches = [];
+        for (let page = 2; page <= pagination.pages; page++) {
+          pageFetches.push(
+            fetch(`https://mad-adriane-dhanapersonal-9be85724.koyeb.app/products?page=${page}`, { cache: 'no-store' })
+              .then(r => {
+                if (!r.ok) throw new Error('Failed to fetch products page ' + page);
+                return r.json();
+              })
+              .then(d => d.products || d)
+          );
+        }
+        const restPagesProducts = await Promise.all(pageFetches);
+        // Flatten all products
+        const allProducts = [
+          ...(firstPageProducts || []),
+          ...restPagesProducts.flat()
+        ];
+        setRawProducts(allProducts);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch products');
+        setLoading(false);
+      }
+    };
+    fetchAllProducts();
+  }, []);
+  const [selectedParent, setSelectedParent] = useState("All");
+  const [selectedSub, setSelectedSub] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortOption, setSortOption] = useState("featured");
@@ -171,9 +268,10 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
 
   // Filter products by search and category
   const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    const matchesParent = selectedParent === "All" || product.parentCategory === selectedParent;
+    const matchesSub = selectedSub === "All" || product.category === selectedSub;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesParent && matchesSub && matchesSearch;
   });
 
   // Sort products based on selected option
@@ -192,7 +290,7 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
   // Reset to first page when filters/sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, sortOption]);
+  }, [selectedParent, selectedSub, sortOption]);
 
   return (
     <section className="container mx-auto px-4">
@@ -219,15 +317,30 @@ const ShopClient: React.FC<ShopClientProps> = ({ categories }) => {
       {/* Category filter and sort dropdown (single context) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex gap-2">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              className={`px-4 py-2 rounded-full border ${selectedCategory === cat ? 'bg-black text-white' : 'bg-[#f8f5f0] text-gray-700'} text-sm`}
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
+          <select
+            value={selectedParent}
+            onChange={e => {
+              setSelectedParent(e.target.value);
+              setSelectedSub("All");
+            }}
+            className="border rounded px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black"
+          >
+            <option value="All">All Categories</option>
+            {categories.map(cat => (
+              <option key={cat.parent} value={cat.parent}>{cat.parent}</option>
+            ))}
+          </select>
+          <select
+            value={selectedSub}
+            onChange={e => setSelectedSub(e.target.value)}
+            className="border rounded px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black"
+            disabled={selectedParent === "All"}
+          >
+            <option value="All">All Subcategories</option>
+            {categories.find(cat => cat.parent === selectedParent)?.subs.map(sub => (
+              <option key={`${selectedParent}-${sub}`} value={sub}>{sub}</option>
+            ))}
+          </select>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-600">Sort by:</span>
