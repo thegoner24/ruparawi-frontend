@@ -46,10 +46,10 @@ export default function ArticleSection() {
                 Discover the stories behind our community of artisans and the sustainable practices that make Rupa Rawi special. Scroll to explore our featured articles.
               </p>
               <a
-                href="#"
+                href="/articles"
                 className="inline-flex bg-black text-white rounded-full px-6 py-3 font-semibold text-sm tracking-wide hover:bg-gray-900 transition"
               >
-                VISIT THE BLOG
+                VISIT THE ARTICLES
               </a>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:border-l md:border-gray-200">

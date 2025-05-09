@@ -459,7 +459,7 @@ export default function VendorProducts() {
       {/* Modal for Add/Edit Product */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-4xl relative">
+          <div className="bg-white w-full h-full fixed inset-0 p-2 sm:p-4 md:p-8 m-0 flex flex-col justify-center items-center z-50 overflow-y-auto max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[95vh] mx-auto my-auto">
             <button
               className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl font-bold"
               onClick={closeModal}
@@ -470,12 +470,12 @@ export default function VendorProducts() {
             <h3 className="text-lg font-bold mb-4 text-yellow-700">
               {modalMode === "add" ? "Add Product" : "Edit Product"}
             </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="h-full w-full flex flex-col justify-center space-y-4">
               <div>
                 <label className="block font-medium mb-1">Name</label>
                 <input
                   type="text"
-                  className="w-full border rounded px-3 py-2"
+                  className="w-full h-auto border rounded px-3 py-2 text-lg"
                   value={form.name || ""}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   required

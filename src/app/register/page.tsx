@@ -92,7 +92,7 @@ export default function RegisterPage() {
         >
         {/* Logo/Brand */}
         <div className="flex flex-col items-center mb-6">
-          <img src="/logo.png" alt="Ruparawi" className="w-16 h-16 rounded-full shadow-lg mb-2 border-2 border-[#bfa76a] bg-white" />
+          <img src="/RupaRawi.png" alt="Ruparawi" className="w-16 h-16 rounded-full shadow-lg mb-2 border-2 border-[#bfa76a] bg-white" />
           <span className="font-bold text-2xl tracking-tight text-[#bfa76a]">Ruparawi</span>
         </div>
         <h1 className="text-3xl font-semibold text-black mb-8 mt-2 tracking-tight text-center">Create Your Account</h1>

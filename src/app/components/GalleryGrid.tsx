@@ -82,8 +82,8 @@ export default function GalleryGrid() {
           <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-0 border-t border-gray-200">
             {/* Left text column */}
             <div className="flex flex-col items-center justify-center px-8 py-12 md:col-span-1 border-r border-gray-200">
-              <h2 className="text-3xl font-light mb-6 text-center text-black">Celebrate The Women Who Shape Our World</h2>
-              <a href="#" className="mt-4 text-base font-medium text-black border border-black rounded-full px-6 py-2 hover:bg-black hover:text-white transition">Shop now</a>
+              <h2 className="text-3xl font-light mb-6 text-center text-black">Beloved Products Pattern From Enclosure</h2>
+              <a href="/vendor-products" className="mt-4 text-base font-medium text-black border border-black rounded-full px-6 py-2 hover:bg-black hover:text-white transition">Shop now</a>
             </div>
             {/* Product cards row 1 */}
             {row1.map((product, idx) => renderProductCard(product, idx))}

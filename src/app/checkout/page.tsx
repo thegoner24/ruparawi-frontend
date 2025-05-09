@@ -286,35 +286,34 @@ if (result.promotion && result.promotion.discount && result.promotion.total_pric
           <>
             <h1 className="text-3xl font-bold text-black mb-8">Checkout</h1>
             {addresses.length === 0 ? (
-              <div className="max-w-lg mx-auto bg-white/80 border border-yellow-300 shadow-xl rounded-2xl p-8 animate-fade-in">
+              <div className="max-w-lg mx-auto bg-white border border-yellow-300 shadow-2xl rounded-2xl p-8 animate-fade-in">
                 <div className="flex flex-col items-center mb-6">
-                  <svg className="w-10 h-10 text-[#d4b572] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 01-8 0m8 0V9a4 4 0 00-8 0v3m8 0a4 4 0 01-8 0" /></svg>
                   <h2 className="text-xl font-bold text-[#b49a4d] mb-1">Add Delivery Address</h2>
                   <p className="text-gray-700 text-sm text-center">No addresses found. Please add an address to continue checkout.</p>
                 </div>
-                <form onSubmit={handleAddAddress} className="grid grid-cols-1 gap-4">
-                  <div className="relative">
-                    <input type="text" name="address_line1" id="address_line1" value={newAddress.address_line1} onChange={handleNewAddressChange} required className="peer w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-transparent placeholder-transparent focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="Street Address" />
-                    <label htmlFor="address_line1" className="absolute left-4 top-3 text-gray-500 text-xs peer-focus:-top-4 peer-focus:text-xs peer-focus:text-[#d4b572] peer-placeholder-shown:top-3 peer-placeholder-shown:text-xs transition-all bg-white px-1">Street Address <span className="text-red-500">*</span></label>
+                <form onSubmit={handleAddAddress} className="flex flex-col gap-4">
+                  <div className="flex flex-col">
+                    <label htmlFor="address_line1" className="text-gray-700 font-medium mb-1">Street Address <span className="text-red-500">*</span></label>
+                    <input type="text" name="address_line1" id="address_line1" value={newAddress.address_line1} onChange={handleNewAddressChange} required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="Street Address" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="relative">
-                      <input type="text" name="city" id="city" value={newAddress.city} onChange={handleNewAddressChange} required className="peer w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-transparent placeholder-transparent focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="City" />
-                      <label htmlFor="city" className="absolute left-4 top-3 text-gray-500 text-xs peer-focus:-top-4 peer-focus:text-xs peer-focus:text-[#d4b572] peer-placeholder-shown:top-3 peer-placeholder-shown:text-xs transition-all bg-white px-1">City <span className="text-red-500">*</span></label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col">
+                      <label htmlFor="city" className="text-gray-700 font-medium mb-1">City <span className="text-red-500">*</span></label>
+                      <input type="text" name="city" id="city" value={newAddress.city} onChange={handleNewAddressChange} required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="City" />
                     </div>
-                    <div className="relative">
-                      <input type="text" name="state" id="state" value={newAddress.state} onChange={handleNewAddressChange} required className="peer w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-transparent placeholder-transparent focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="State/Province" />
-                      <label htmlFor="state" className="absolute left-4 top-3 text-gray-500 text-xs peer-focus:-top-4 peer-focus:text-xs peer-focus:text-[#d4b572] peer-placeholder-shown:top-3 peer-placeholder-shown:text-xs transition-all bg-white px-1">State/Province <span className="text-red-500">*</span></label>
+                    <div className="flex flex-col">
+                      <label htmlFor="state" className="text-gray-700 font-medium mb-1">State/Province <span className="text-red-500">*</span></label>
+                      <input type="text" name="state" id="state" value={newAddress.state} onChange={handleNewAddressChange} required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="State/Province" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="relative">
-                      <input type="text" name="postal_code" id="postal_code" value={newAddress.postal_code} onChange={handleNewAddressChange} required className="peer w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-transparent placeholder-transparent focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="Postal Code" />
-                      <label htmlFor="postal_code" className="absolute left-4 top-3 text-gray-500 text-xs peer-focus:-top-4 peer-focus:text-xs peer-focus:text-[#d4b572] peer-placeholder-shown:top-3 peer-placeholder-shown:text-xs transition-all bg-white px-1">Postal Code <span className="text-red-500">*</span></label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col">
+                      <label htmlFor="postal_code" className="text-gray-700 font-medium mb-1">Postal Code <span className="text-red-500">*</span></label>
+                      <input type="text" name="postal_code" id="postal_code" value={newAddress.postal_code} onChange={handleNewAddressChange} required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="Postal Code" />
                     </div>
-                    <div className="relative">
-                      <input type="text" name="country" id="country" value={newAddress.country} onChange={handleNewAddressChange} required className="peer w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-transparent placeholder-transparent focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="Country" />
-                      <label htmlFor="country" className="absolute left-4 top-3 text-gray-500 text-xs peer-focus:-top-4 peer-focus:text-xs peer-focus:text-[#d4b572] peer-placeholder-shown:top-3 peer-placeholder-shown:text-xs transition-all bg-white px-1">Country <span className="text-red-500">*</span></label>
+                    <div className="flex flex-col">
+                      <label htmlFor="country" className="text-gray-700 font-medium mb-1">Country <span className="text-red-500">*</span></label>
+                      <input type="text" name="country" id="country" value={newAddress.country} onChange={handleNewAddressChange} required className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#d4b572] transition-all" placeholder="Country" />
                     </div>
                   </div>
                   <div className="flex items-center gap-2 mt-2">
