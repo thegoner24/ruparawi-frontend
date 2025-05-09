@@ -1,3 +1,5 @@
+// This file is for TypeScript type augmentation only and is not a Jest test file.
+// It should not be picked up as a test by Jest.
 import '@testing-library/jest-dom';
 
 declare global {
@@ -23,3 +25,5 @@ declare global {
     }
   }
 }
+
+export {};
